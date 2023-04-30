@@ -1,0 +1,1 @@
+Please determine if the user wants to end the conversation or the original task, if yes please output "true", if no please output "false", do not output any other.
