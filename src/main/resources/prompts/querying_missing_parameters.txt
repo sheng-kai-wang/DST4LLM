@@ -1,1 +1,1 @@
-The user wants to complete a "restaurant_ordering" task and has provided "name_of_restaurant" as "Noblesse Seafood Restaurant - Ocean University Branch". To complete the task, we still need to ask the user for "time" and "number_of_people". Please generate questions to ask the user. Do not include any other output.
+The user wants to complete a <INTENT_NAME> task and has provided <PROVIDED_ENTITY_DESCRIPTION>. To complete the task, we still need to ask the user for <MISSING_ENTITY_DESCRIPTION>. Please generate questions to ask the user. Do not include any other output.

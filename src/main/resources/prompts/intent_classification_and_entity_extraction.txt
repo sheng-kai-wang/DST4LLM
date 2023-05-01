@@ -1,30 +1,5 @@
 Please list the intent and entity information of the user's message, and sort the possible intents in descending order of confidence, where confidence is a floating-point number between 0 and 1. A sentence can have multiple intents. The following are the possible intents and entities:
-{
-  "weather_checking": [
-    "city"
-  ],
-  "restaurant_ordering": [
-    "name_of_restaurant",
-    "time",
-    "number_of_people"
-  ],
-  "hotel_booking": [
-    "name_of_hotel",
-    "check_in_date",
-    "check_out_date",
-    "type_of_room",
-    "number_of_people",
-    "method_of_payment"
-  ],
-  "train_ticket_booking": [
-    "origin_station",
-    "destination_station",
-    "time",
-    "type_of_ticket",
-    "quantity",
-    "method_of_payment"
-  ]
-}
+<CAPABILITY_JSON>
 
-The following is the JSON format you will output, "< >" is the value you need to fill in, do not list entities not provided by the user, do not output null, and do not output content other than JSON:
-["<intent>":[{"<entity>", "<value>}]]
+The following is the JSON format you will output, "< >" represents the positions you need to fill in, do not include objects of entity_name and entity_value if the user has not provided them, and do not output any content outside the JSON:
+{"<intent>":{"<entity_name>", "<entity_value>"}}
