@@ -1,4 +1,4 @@
-package ntou.soselab.msdobot_llm_lab.Service;
+package ntou.soselab.msdobot_llm_lab.Service.NLPService;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -20,7 +20,7 @@ import org.springframework.util.FileCopyUtils;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Iterator;
+import java.util.Map;
 import java.util.Properties;
 
 @Service
@@ -34,6 +34,7 @@ public class ChatGPTService {
     private final String INTENT_CLASSIFICATION_AND_ENTITY_EXTRACTION_FILE;
     private final String QUERYING_MISSING_PARAMETERS_FILE;
     private final String CAPABILITY_FILE;
+    private final Properties CAPABILITY_YAML;
 
     @Autowired
     public ChatGPTService(Environment env) {
@@ -47,45 +48,81 @@ public class ChatGPTService {
         this.QUERYING_MISSING_PARAMETERS_FILE = env.getProperty("prompts.querying_missing_parameters.file");
 
         this.CAPABILITY_FILE = env.getProperty("capability.file");
+        this.CAPABILITY_YAML = loadCapabilityYaml();
+    }
+
+    public Properties getCapabilityYaml() {
+        return this.CAPABILITY_YAML;
     }
 
     public boolean isPromptInjection(String userPrompt) {
-        String systemPrompt = getSystemPrompt(PROMPT_INJECTION_DETECTION_FILE);
+        System.out.println("[DEBUG] trigger isPromptInjection()");
+        System.out.println("[User Prompt] " + userPrompt);
+
+        String systemPrompt = loadSystemPrompt(PROMPT_INJECTION_DETECTION_FILE);
         String completion = inference(systemPrompt, userPrompt);
-        return completion.contains("true");
+
+        boolean isPromptInjection = completion.contains("true");
+        System.out.println("[Is Prompt Injection?] " + isPromptInjection);
+        return isPromptInjection;
     }
 
     public boolean isEndOfCapability(String userPrompt) {
-        String systemPrompt = getSystemPrompt(END_OF_CAPABILITY_FILE);
+        System.out.println("[DEBUG] trigger isEndOfCapability()");
+        System.out.println("[User Prompt] " + userPrompt);
+
+        String systemPrompt = loadSystemPrompt(END_OF_CAPABILITY_FILE);
         String completion = inference(systemPrompt, userPrompt);
-        return completion.contains("true");
+
+        boolean isEndOfCapability = completion.contains("true");
+        System.out.println("[Is End Of Capability?] " + isEndOfCapability);
+        return isEndOfCapability;
     }
 
+    /**
+     * @param userPrompt like "I would like to make a reservation at Noblesse Seafood Restaurant - Ocean University Branch and also book a flight at 10 a.m."
+     * @return like {"restaurant_ordering": {"name_of_restaurant": "Noblesse Seafood Restaurant - Ocean University Branch"}, "flight_ticket_booking": {"time": "10 a.m."}}
+     * @throws JsonProcessingException Before ChatGPT -> yaml to json string exception
+     * @throws JsonParseException After ChatGPT -> json string to JSONObject exception
+     */
     public JSONObject classifyIntentAndExtractEntity(String userPrompt) throws JsonProcessingException, JsonParseException {
-        String systemPrompt = getSystemPrompt(INTENT_CLASSIFICATION_AND_ENTITY_EXTRACTION_FILE);
+        System.out.println("[DEBUG] trigger classifyIntentAndExtractEntity()");
+        System.out.println("[User Prompt] " + userPrompt);
 
-        Properties capabilities = getCapabilityYaml();
-        String capabilityJson = new ObjectMapper().writeValueAsString(capabilities);
+        String systemPrompt = loadSystemPrompt(INTENT_CLASSIFICATION_AND_ENTITY_EXTRACTION_FILE);
+
+        String capabilityJson = new ObjectMapper().writeValueAsString(CAPABILITY_YAML);
 
         systemPrompt = systemPrompt.replace("<CAPABILITY_JSON>", capabilityJson);
 
         String completion = inference(systemPrompt, userPrompt);
-        return new Gson().fromJson(completion, JSONObject.class);
+
+        JSONObject completionJSON = new Gson().fromJson(completion, JSONObject.class);
+        System.out.println("[Completion JSON] " + completionJSON);
+        return completionJSON;
     }
 
-    public String queryMissingParameter(String intent, JSONObject providedEntities) throws JSONException {
-        String systemPrompt = getSystemPrompt(QUERYING_MISSING_PARAMETERS_FILE);
-        systemPrompt = systemPrompt.replace("<INTENT_NAME>", intent);
+    /**
+     * @param intentName
+     * @param providedEntities
+     * @return
+     * @throws JSONException Before ChatGPT -> yaml to JSONObject exception
+     */
+    public String queryMissingParameter(String intentName, Map<String, String> providedEntities) throws JSONException {
+        System.out.println("[DEBUG] trigger queryMissingParameter()");
 
-        JSONObject capabilityJSON = new JSONObject(getCapabilityYaml());
-        JSONArray allEntities = capabilityJSON.getJSONArray(intent);
+        String systemPrompt = loadSystemPrompt(QUERYING_MISSING_PARAMETERS_FILE);
+        systemPrompt = systemPrompt.replace("<INTENT_NAME>", intentName);
+
+        JSONObject capabilityJSON = new JSONObject(CAPABILITY_YAML);
+        JSONArray allEntities = capabilityJSON.getJSONArray(intentName);
 
         StringBuilder providedEntityDescription = new StringBuilder();
         StringBuilder missingEntityDescription = new StringBuilder();
         for (int i = 0; i < allEntities.length(); i++) {
             String currentEntityName = allEntities.getString(i);
-            if (providedEntities.has(currentEntityName)) {
-                String entityValue = providedEntities.getString(currentEntityName);
+            if (providedEntities.containsKey(currentEntityName)) {
+                String entityValue = providedEntities.get(currentEntityName);
                 providedEntityDescription.append("\"").append(currentEntityName).append("\" as ");
                 providedEntityDescription.append("\"").append(entityValue).append("\", ");
             } else {
@@ -95,8 +132,11 @@ public class ChatGPTService {
 
         systemPrompt = systemPrompt.replace("<PROVIDED_ENTITY_DESCRIPTION>", providedEntityDescription.toString());
         systemPrompt = systemPrompt.replace("<MISSING_ENTITY_DESCRIPTION>", missingEntityDescription.toString());
+        System.out.println("[System Prompt] " + systemPrompt);
 
-        return inference(systemPrompt, null);
+        String completion = inference(systemPrompt, null);
+        System.out.println("[Assistant Completion] " + completion);
+        return completion;
     }
 
     private String inference(String systemPrompt, String userPrompt) {
@@ -147,13 +187,17 @@ public class ChatGPTService {
         return restTemplate.postForObject(OPENAI_API_URL, entity, String.class);
     }
 
-    private Properties getCapabilityYaml() {
+    private Properties loadCapabilityYaml() {
         YamlPropertiesFactoryBean yaml = new YamlPropertiesFactoryBean();
         yaml.setResources(new ClassPathResource(CAPABILITY_FILE));
-        return yaml.getObject();
+        Properties capabilityYaml = yaml.getObject();
+        System.out.println("[DEBUG] all capability:");
+        System.out.println(capabilityYaml);
+        System.out.println();
+        return capabilityYaml;
     }
 
-    private String getSystemPrompt(String promptFile) {
+    private String loadSystemPrompt(String promptFile) {
         ClassPathResource resource = new ClassPathResource(promptFile);
         byte[] bytes;
         try {

@@ -1,4 +1,4 @@
-package ntou.soselab.msdobot_llm_lab.Service;
+package ntou.soselab.msdobot_llm_lab.Service.DiscordService;
 
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;

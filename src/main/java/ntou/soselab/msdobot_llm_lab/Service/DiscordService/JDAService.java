@@ -1,14 +1,11 @@
-package ntou.soselab.msdobot_llm_lab.Service;
+package ntou.soselab.msdobot_llm_lab.Service.DiscordService;
 
-import jakarta.annotation.PostConstruct;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
-
-import javax.security.auth.login.LoginException;
 
 @Service
 public class JDAService {
@@ -22,5 +19,6 @@ public class JDAService {
                 .enableIntents(GatewayIntent.MESSAGE_CONTENT)
                 .build();
         jda.addEventListener(listener);
+        System.out.println("[DEBUG] JDA START!");
     }
 }
