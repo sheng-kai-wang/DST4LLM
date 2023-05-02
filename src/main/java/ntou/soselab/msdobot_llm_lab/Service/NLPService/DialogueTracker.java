@@ -2,7 +2,14 @@ package ntou.soselab.msdobot_llm_lab.Service.NLPService;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.gson.JsonParseException;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.interactions.components.buttons.Button;
+import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
+import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import ntou.soselab.msdobot_llm_lab.Entity.Intent;
+import ntou.soselab.msdobot_llm_lab.Entity.Tester;
+import ntou.soselab.msdobot_llm_lab.Service.CapabilityLoader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.configurationprocessor.json.JSONException;
 import org.springframework.boot.configurationprocessor.json.JSONObject;
@@ -16,111 +23,126 @@ import java.util.concurrent.ConcurrentMap;
 @Service
 public class DialogueTracker {
 
-    private ConcurrentMap<String, Stack<Intent>> activeUserStacks;
+    private ConcurrentMap<String, Tester> activeTesterMap = new ConcurrentHashMap<>();
+    private List<String> waitingButtonTesterList = new ArrayList<>();
     private final Long EXPIRED_INTERVAL;
     private ChatGPTService chatGPTService;
+    private final CapabilityLoader capabilityLoader;
 
     @Autowired
-    public DialogueTracker(Environment env, ChatGPTService chatGPTService) {
-        this.activeUserStacks = new ConcurrentHashMap<>();
+    public DialogueTracker(Environment env, ChatGPTService chatGPTService, CapabilityLoader capabilityLoader) {
         this.EXPIRED_INTERVAL = Long.valueOf(Objects.requireNonNull(env.getProperty("intent.expired_time")));
         this.chatGPTService = chatGPTService;
+        this.capabilityLoader = capabilityLoader;
     }
 
-    public void addUser(String userId) {
-        if (!hasUser(userId)) activeUserStacks.put(userId, new Stack<>());
+    public MessageCreateData addTester(String testerId, String name) {
+        MessageCreateBuilder mb = new MessageCreateBuilder();
+        if (hasTester(testerId)) {
+            return mb.setContent("```properties" + "\nYou have started the lab.```").build();
+        } else {
+            activeTesterMap.put(testerId, new Tester(testerId, name));
+            return mb.setContent("<<TODO：實驗說明>>").build();
+        }
     }
 
-    public boolean hasUser(String userId) {
-        return activeUserStacks.containsKey(userId);
+    private boolean hasTester(String testerId) {
+        return activeTesterMap.containsKey(testerId);
     }
 
-    public String inputMessage(String userId, String userInput) {
-        if (chatGPTService.isPromptInjection(userInput)) {
+    public MessageCreateData inputMessage(String testerId, String testerInput) {
+        Tester currentTester = activeTesterMap.get(testerId);
+        MessageCreateBuilder mb = new MessageCreateBuilder();
+
+        if (chatGPTService.isPromptInjection(testerInput)) {
             System.out.println("[WARNING] Prompt Injection");
-            return "Sorry, the message you entered is beyond the scope of the capability.";
+            return mb.setContent("Sorry, the message you entered is beyond the scope of the capability.").build();
         }
-        if (chatGPTService.isEndOfCapability(userInput)) {
+
+        if (chatGPTService.isEndOfCapability(testerInput)) {
             System.out.println("[DEBUG] End Of Capability");
-            String cancelledCapability = cancelCapability(userId);
-            if (cancelledCapability == null) return "There are no capabilities being performed yet.";
-            return "Okay, we have cancelled the " + cancelledCapability + " capability for you.";
+            String cancelledIntentName = currentTester.cancelTopIntent();
+            if (cancelledIntentName == null) {
+                return mb.setContent("There are no capabilities being prepared for perform yet.").build();
+            }
+            return mb.setContent("Okay, we have cancelled the " + cancelledIntentName + " capability for you.").build();
         }
 
-        String errorMessage = "Sorry, the system has encountered a formatting exception.";
+        String errorMessage = "```properties" + "\nSorry, the system has encountered a formatting exception.```";
         try {
-            JSONObject matchedIntentAndEntity = chatGPTService.classifyIntentAndExtractEntity(userInput);
-            Iterator intentIt = matchedIntentAndEntity.keys();
-            while (intentIt.hasNext()) {
-                String intentName = intentIt.next().toString();
-                Map<String, String> allEntitiesMap = new HashMap<>();
-                List<String> allEntitiesName = (List<String>) chatGPTService.getCapabilityYaml().get(intentName);
-                JSONObject matchedEntitiesObj = matchedIntentAndEntity.getJSONObject(intentName);
-                for (String entityName : allEntitiesName) {
-                    if (matchedEntitiesObj.has(entityName)) {
-                        String entityValue = matchedEntitiesObj.get(entityName).toString();
-                        allEntitiesMap.put(entityName, entityValue);
-                    } else {
-                        allEntitiesMap.put(entityName, null);
-                    }
-                }
-                Long expiredTimestamp = System.currentTimeMillis() + EXPIRED_INTERVAL;
-                Intent newIntent = new Intent(intentName, expiredTimestamp, allEntitiesMap);
-                activeUserStacks.get(userId).push(newIntent);
-                System.out.println("[DEBUG] push intent: " + intentName);
-            }
-            System.out.println("[DEBUG] push successful");
-            return "ok!";
-
+            JSONObject matchedIntentAndEntity = chatGPTService.classifyIntentAndExtractEntity(testerInput);
+            Properties capabilityYaml = capabilityLoader.getCapabilityYaml();
+            String response = currentTester.updateIntent(matchedIntentAndEntity, capabilityYaml, EXPIRED_INTERVAL);
+            mb.addContent(response);
         } catch (JsonParseException e) {
             System.out.println("[ERROR] After ChatGPT -> json string to JSONObject exception");
             e.printStackTrace();
-            return errorMessage;
+            return mb.setContent(errorMessage).build();
         } catch (JsonProcessingException e) {
             System.out.println("[ERROR] Before ChatGPT -> yaml to json string exception");
             e.printStackTrace();
-            return errorMessage;
+            return mb.setContent(errorMessage).build();
         } catch (JSONException e) {
             System.out.println("[ERROR] After ChatGPT -> get JSONObject from JSONObject exception");
             e.printStackTrace();
-            return errorMessage;
+            return mb.setContent(errorMessage).build();
+        }
+
+        // generate perform check (button)
+        if (currentTester.canPerform()) {
+            generatePerformCheck(mb, currentTester);
+
+            // generate question
+        } else {
+            generateQuestion(mb, currentTester);
+        }
+
+        return mb.build();
+    }
+
+    private void generatePerformCheck(MessageCreateBuilder mb, Tester currentTester) {
+        mb.addContent("Here is the capability you are about to perform.");
+        mb.addContent("Please use the BUTTON to indicate whether you want to proceed.");
+        while (currentTester.canPerform()) {
+            Intent pendingIntent = currentTester.checkPerformInfo();
+
+            EmbedBuilder eb = new EmbedBuilder();
+            eb.setTitle(pendingIntent.getName());
+            for (Map.Entry<String, String> entity : pendingIntent.getEntities().entrySet()) {
+                eb.addField(entity.getKey(), entity.getValue(), false);
+            }
+            mb.setEmbeds(eb.build());
+        }
+        mb.addActionRow(Button.primary("", "Perform"));
+        mb.addActionRow(Button.primary("", "Cancel"));
+        waitingButtonTesterList.add(currentTester.getId());
+        System.out.println("[DEBUG] Waiting for " + currentTester.getName() + "to click the button.");
+    }
+
+    public void removeWaitingTesterList(String testerId) {
+        waitingButtonTesterList.remove(testerId);
+    }
+
+    private void generateQuestion(MessageCreateBuilder mb, Tester tester) {
+        Intent waitingIntent = activeTesterMap.get(tester.getId()).getTopIntent();
+        try {
+            String question = chatGPTService.queryMissingParameter(waitingIntent.getName(), waitingIntent.getEntities());
+            mb.addContent(question);
+        } catch (JSONException e) {
+            System.out.println("[ERROR] Before ChatGPT -> yaml to JSONObject exception");
+            e.printStackTrace();
+            mb.setContent("```properties" + "\nSorry, the system has encountered a formatting exception.```");
         }
     }
 
-    private boolean isWaitingForPerform(String userId) {
-        if (!hasUser(userId)) return false;
-        Stack<Intent> intentStack = activeUserStacks.get(userId);
-        return !intentStack.isEmpty();
-    }
-
-    public boolean canPerform(String userId) {
-        if (!isWaitingForPerform(userId)) return false;
-        return activeUserStacks.get(userId).peek().canPerform();
-    }
-
-    public String GenerateQuestion(String userId) {
-        if (!isWaitingForPerform(userId)) return null;
-        Intent waitingIntent = activeUserStacks.get(userId).peek();
+    public String generateQuestionString(String testerId) {
+        Intent waitingIntent = activeTesterMap.get(testerId).getTopIntent();
         try {
             return chatGPTService.queryMissingParameter(waitingIntent.getName(), waitingIntent.getEntities());
         } catch (JSONException e) {
             System.out.println("[ERROR] Before ChatGPT -> yaml to JSONObject exception");
             e.printStackTrace();
-            return "Sorry, the system has encountered a formatting exception.";
+            return "```properties" + "\nSorry, the system has encountered a formatting exception.```";
         }
-    }
-
-    public Intent checkPerformInfo(String userId) {
-        if (!canPerform(userId)) return null;
-        return activeUserStacks.get(userId).peek();
-    }
-
-    public void perform(String userId) {
-        if (canPerform(userId)) activeUserStacks.get(userId).pop();
-    }
-
-    public String cancelCapability(String userId) {
-        if (!isWaitingForPerform(userId)) return null;
-        return activeUserStacks.get(userId).pop().getName();
     }
 }

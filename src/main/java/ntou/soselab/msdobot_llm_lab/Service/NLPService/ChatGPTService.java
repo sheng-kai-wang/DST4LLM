@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
+import ntou.soselab.msdobot_llm_lab.Service.CapabilityLoader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.configurationprocessor.json.JSONArray;
 import org.springframework.boot.configurationprocessor.json.JSONException;
@@ -29,15 +30,16 @@ public class ChatGPTService {
     private final String OPENAI_API_URL;
     private final String OPENAI_API_KEY;
     private final String OPENAI_API_MODEL;
+
     private final String PROMPT_INJECTION_DETECTION_FILE;
     private final String END_OF_CAPABILITY_FILE;
     private final String INTENT_CLASSIFICATION_AND_ENTITY_EXTRACTION_FILE;
     private final String QUERYING_MISSING_PARAMETERS_FILE;
-    private final String CAPABILITY_FILE;
-    private final Properties CAPABILITY_YAML;
+
+    private final CapabilityLoader capabilityLoader;
 
     @Autowired
-    public ChatGPTService(Environment env) {
+    public ChatGPTService(Environment env, CapabilityLoader capabilityLoader) {
         this.OPENAI_API_URL = env.getProperty("openai.api.url");
         this.OPENAI_API_KEY = env.getProperty("openai.api.key");
         this.OPENAI_API_MODEL = env.getProperty("openai.api.model");
@@ -47,12 +49,7 @@ public class ChatGPTService {
         this.INTENT_CLASSIFICATION_AND_ENTITY_EXTRACTION_FILE = env.getProperty("prompts.intent_classification_and_entity_extraction.file");
         this.QUERYING_MISSING_PARAMETERS_FILE = env.getProperty("prompts.querying_missing_parameters.file");
 
-        this.CAPABILITY_FILE = env.getProperty("capability.file");
-        this.CAPABILITY_YAML = loadCapabilityYaml();
-    }
-
-    public Properties getCapabilityYaml() {
-        return this.CAPABILITY_YAML;
+        this.capabilityLoader = capabilityLoader;
     }
 
     public boolean isPromptInjection(String userPrompt) {
@@ -91,9 +88,11 @@ public class ChatGPTService {
 
         String systemPrompt = loadSystemPrompt(INTENT_CLASSIFICATION_AND_ENTITY_EXTRACTION_FILE);
 
-        String capabilityJson = new ObjectMapper().writeValueAsString(CAPABILITY_YAML);
+        Properties capabilityYaml = capabilityLoader.getCapabilityYaml();
+        capabilityYaml.put("out_of_scope", null);
+        String capabilityJsonString = new ObjectMapper().writeValueAsString(capabilityYaml);
 
-        systemPrompt = systemPrompt.replace("<CAPABILITY_JSON>", capabilityJson);
+        systemPrompt = systemPrompt.replace("<CAPABILITY_JSON>", capabilityJsonString);
 
         String completion = inference(systemPrompt, userPrompt);
 
@@ -114,7 +113,8 @@ public class ChatGPTService {
         String systemPrompt = loadSystemPrompt(QUERYING_MISSING_PARAMETERS_FILE);
         systemPrompt = systemPrompt.replace("<INTENT_NAME>", intentName);
 
-        JSONObject capabilityJSON = new JSONObject(CAPABILITY_YAML);
+        Properties capabilityYaml = capabilityLoader.getCapabilityYaml();
+        JSONObject capabilityJSON = new JSONObject(capabilityYaml);
         JSONArray allEntities = capabilityJSON.getJSONArray(intentName);
 
         StringBuilder providedEntityDescription = new StringBuilder();
@@ -185,16 +185,6 @@ public class ChatGPTService {
         HttpEntity<String> entity = new HttpEntity<>(requestBody.toString(), headers);
 
         return restTemplate.postForObject(OPENAI_API_URL, entity, String.class);
-    }
-
-    private Properties loadCapabilityYaml() {
-        YamlPropertiesFactoryBean yaml = new YamlPropertiesFactoryBean();
-        yaml.setResources(new ClassPathResource(CAPABILITY_FILE));
-        Properties capabilityYaml = yaml.getObject();
-        System.out.println("[DEBUG] all capability:");
-        System.out.println(capabilityYaml);
-        System.out.println();
-        return capabilityYaml;
     }
 
     private String loadSystemPrompt(String promptFile) {
