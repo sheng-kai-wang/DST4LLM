@@ -9,16 +9,21 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class JDAService {
-    private final JDA jda;
 
     @Autowired
-    public JDAService(Environment env, DiscordMessageListener listener) {
-        String appToken = env.getProperty("discord.application.token");
-        this.jda = JDABuilder
-                .createDefault(appToken)
+    public JDAService(Environment env,
+                      DiscordSlashCommandListener slashCommandListener,
+                      DiscordMessageListener messagelistener,
+                      DiscordButtonListener buttonListener) {
+
+        String APP_TOKEN = env.getProperty("discord.application.token");
+        JDABuilder.createDefault(APP_TOKEN)
                 .enableIntents(GatewayIntent.MESSAGE_CONTENT)
+                .addEventListeners(slashCommandListener)
+                .addEventListeners(messagelistener)
+                .addEventListeners(buttonListener)
                 .build();
-        jda.addEventListener(listener);
+
         System.out.println("[DEBUG] JDA START!");
     }
 }

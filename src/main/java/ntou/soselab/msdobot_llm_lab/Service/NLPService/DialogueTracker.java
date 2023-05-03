@@ -35,13 +35,25 @@ public class DialogueTracker {
         this.capabilityLoader = capabilityLoader;
     }
 
-    public MessageCreateData addTester(String testerId, String name) {
+    public MessageCreateData addTester(String testerId, String testerName) {
         MessageCreateBuilder mb = new MessageCreateBuilder();
         if (hasTester(testerId)) {
             return mb.setContent("```properties" + "\nYou have started the lab.```").build();
         } else {
-            activeTesterMap.put(testerId, new Tester(testerId, name));
+            activeTesterMap.put(testerId, new Tester(testerId, testerName));
+            System.out.println("[DEBUG] add tester: " + testerName);
             return mb.setContent("<<TODO：實驗說明>>").build();
+        }
+    }
+
+    public MessageCreateData removeTester(String testerId, String testerName) {
+        MessageCreateBuilder mb = new MessageCreateBuilder();
+        if (hasTester(testerId)) {
+            activeTesterMap.remove(testerId);
+            System.out.println("[DEBUG] remove tester: " + testerName);
+            return mb.setContent("```properties" + "\nThank you for your assistance.").build();
+        } else {
+            return mb.setContent("```properties" + "\nYou haven't started the lab yet.```").build();
         }
     }
 
@@ -50,8 +62,14 @@ public class DialogueTracker {
     }
 
     public MessageCreateData inputMessage(String testerId, String testerInput) {
-        Tester currentTester = activeTesterMap.get(testerId);
         MessageCreateBuilder mb = new MessageCreateBuilder();
+
+        if (!activeTesterMap.containsKey(testerId)) {
+            return mb.setContent("```properties" + "\nSorry, you must use the slash command \"/lab_start\" to start this lab.```")
+                    .build();
+        }
+
+        Tester currentTester = activeTesterMap.get(testerId);
 
         if (chatGPTService.isPromptInjection(testerInput)) {
             System.out.println("[WARNING] Prompt Injection");
@@ -109,12 +127,12 @@ public class DialogueTracker {
             String intentName = intent.getName();
             EmbedBuilder eb = new EmbedBuilder();
             eb.setTitle(intentName);
-            System.out.println("[DEBUG][Intent] " + intentName);
+            System.out.println("[Intent] " + intentName);
             for (Map.Entry<String, String> entity : intent.getEntities().entrySet()) {
                 String entityName = entity.getKey();
                 String entityValue = entity.getValue();
                 eb.addField(entityName, entityValue, false);
-                System.out.println("[DEBUG][Entity] " + entityName + " = " + entityValue);
+                System.out.println("[Entity] " + entityName + " = " + entityValue);
             }
             mb.addEmbeds(eb.build());
         }
@@ -149,7 +167,7 @@ public class DialogueTracker {
         try {
             String question = chatGPTService.queryMissingParameter(waitingIntent.getName(), waitingIntent.getEntities());
             mb.addContent(question);
-            System.out.println("[DEBUG][Question] " + question);
+            System.out.println("[Question] " + question);
         } catch (JSONException e) {
             System.out.println("[ERROR] Before ChatGPT -> yaml to JSONObject exception");
             e.printStackTrace();

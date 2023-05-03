@@ -3,6 +3,8 @@ package ntou.soselab.msdobot_llm_lab.Service.DiscordService;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.utils.messages.MessageCreateData;
+import ntou.soselab.msdobot_llm_lab.Service.NLPService.DialogueTracker;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
@@ -12,11 +14,13 @@ public class DiscordMessageListener extends ListenerAdapter {
     private final String EXAMPLE_CHANNEL_ID;
     private final String DEMO_CHANNEL_ID;
     private final String GUILD_ID;
+    private DialogueTracker dialogueTracker;
 
-    public DiscordMessageListener(Environment env) {
+    public DiscordMessageListener(Environment env, DialogueTracker dialogueTracker) {
         this.EXAMPLE_CHANNEL_ID = env.getProperty("discord.channel.example.id");
         this.DEMO_CHANNEL_ID = env.getProperty("discord.channel.demo.id");
         this.GUILD_ID = env.getProperty("discord.guild.id");
+        this.dialogueTracker = dialogueTracker;
     }
 
     @Override
@@ -24,8 +28,10 @@ public class DiscordMessageListener extends ListenerAdapter {
         if (event.getAuthor().isBot()) return;
 
         if (shouldReply(event)) {
-            String message = event.getMessage().getContentRaw();
-            event.getChannel().sendMessage(message).queue();
+            String userId = event.getAuthor().getId();
+            String userInput = event.getMessage().getContentRaw();
+            MessageCreateData response = dialogueTracker.inputMessage(userId, userInput);
+            event.getChannel().sendMessage(response).queue();
         }
     }
 
