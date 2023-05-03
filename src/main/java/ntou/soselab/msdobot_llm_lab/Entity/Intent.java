@@ -1,9 +1,6 @@
 package ntou.soselab.msdobot_llm_lab.Entity;
 
-import org.springframework.beans.factory.annotation.Autowired;
-
 import java.util.Map;
-import java.util.Objects;
 
 public class Intent {
 
@@ -24,6 +21,10 @@ public class Intent {
 
     public Map<String, String> getEntities() {
         return this.entities;
+    }
+
+    public Long getExpiredTimestamp() {
+        return this.EXPIRED_TIMESTAMP;
     }
 
     public boolean canPerform() {

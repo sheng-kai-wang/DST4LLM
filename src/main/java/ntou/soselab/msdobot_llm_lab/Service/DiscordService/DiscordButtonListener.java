@@ -8,8 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 @Service
 public class DiscordButtonListener extends ListenerAdapter {
@@ -25,9 +24,20 @@ public class DiscordButtonListener extends ListenerAdapter {
     public void onButtonInteraction(@NotNull ButtonInteractionEvent event) {
         User tester = event.getUser();
         String testerId = tester.getId();
-        System.out.println("[DEBUG] " + tester.getName() + " click " + event.getButton().getLabel());
+        String testerName = tester.getName();
+        String buttonLabel = event.getButton().getLabel();
+        System.out.println("[DEBUG] " + testerName + " click " + buttonLabel);
+
+        List<String> intentNameList = null;
+        if ("Perform".equals(buttonLabel)) intentNameList = dialogueTracker.performAllPerformableIntent(testerId);
+        if ("Cancel".equals(buttonLabel)) intentNameList = dialogueTracker.cancelAllPerformableIntent(testerId);
         dialogueTracker.removeWaitingTesterList(testerId);
+
         String question = dialogueTracker.generateQuestionString(testerId);
-        event.getHook().sendMessage("got it!\n\n" + question).queue();
+        event.editButton(event.getButton().asDisabled()).queue();
+        event.getHook()
+                .sendMessage("got it!\n" + buttonLabel + " " + intentNameList + "\n\n" + question)
+                .queue();
+        System.out.println("[DEBUG] generate question to " + testerName);
     }
 }

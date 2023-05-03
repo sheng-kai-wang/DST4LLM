@@ -3,7 +3,6 @@ package ntou.soselab.msdobot_llm_lab.Service.NLPService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.gson.JsonParseException;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
@@ -89,45 +88,68 @@ public class DialogueTracker {
         }
 
         // generate perform check (button)
-        if (currentTester.canPerform()) {
-            generatePerformCheck(mb, currentTester);
+        List<Intent> performableIntentList = currentTester.getPerformableIntentList();
+        if (!performableIntentList.isEmpty()) {
+            generatePerformCheck(mb, currentTester, performableIntentList);
 
             // generate question
         } else {
+            removeExpiredIntent(currentTester);
             generateQuestion(mb, currentTester);
         }
 
         return mb.build();
     }
 
-    private void generatePerformCheck(MessageCreateBuilder mb, Tester currentTester) {
+    private void generatePerformCheck(MessageCreateBuilder mb, Tester tester, List<Intent> performableIntentList) {
         mb.addContent("Here is the capability you are about to perform.");
         mb.addContent("Please use the BUTTON to indicate whether you want to proceed.");
-        while (currentTester.canPerform()) {
-            Intent pendingIntent = currentTester.checkPerformInfo();
-
+        System.out.println("[DEBUG] generate perform check to " + tester.getName());
+        for (Intent intent : performableIntentList) {
+            String intentName = intent.getName();
             EmbedBuilder eb = new EmbedBuilder();
-            eb.setTitle(pendingIntent.getName());
-            for (Map.Entry<String, String> entity : pendingIntent.getEntities().entrySet()) {
-                eb.addField(entity.getKey(), entity.getValue(), false);
+            eb.setTitle(intentName);
+            System.out.println("[DEBUG][Intent] " + intentName);
+            for (Map.Entry<String, String> entity : intent.getEntities().entrySet()) {
+                String entityName = entity.getKey();
+                String entityValue = entity.getValue();
+                eb.addField(entityName, entityValue, false);
+                System.out.println("[DEBUG][Entity] " + entityName + " = " + entityValue);
             }
-            mb.setEmbeds(eb.build());
+            mb.addEmbeds(eb.build());
         }
         mb.addActionRow(Button.primary("", "Perform"));
         mb.addActionRow(Button.primary("", "Cancel"));
-        waitingButtonTesterList.add(currentTester.getId());
-        System.out.println("[DEBUG] Waiting for " + currentTester.getName() + "to click the button.");
+        waitingButtonTesterList.add(tester.getId());
+        System.out.println("[DEBUG] Waiting for " + tester.getName() + "to click the button.");
     }
 
     public void removeWaitingTesterList(String testerId) {
         waitingButtonTesterList.remove(testerId);
     }
 
+    public ArrayList<String> performAllPerformableIntent(String testerId) {
+        return activeTesterMap.get(testerId).performAllPerformableIntent();
+    }
+
+    public ArrayList<String> cancelAllPerformableIntent(String testerId) {
+        return activeTesterMap.get(testerId).cancelAllPerformableIntent();
+    }
+
+    private void removeExpiredIntent(Tester tester) {
+        List<String> removedIntentList = activeTesterMap.get(tester.getId()).removeExpiredIntent();
+        System.out.println("[DEBUG] remove expired intent of " + tester.getName());
+        System.out.println("[DEBUG] removed intent list: " + removedIntentList);
+    }
+
     private void generateQuestion(MessageCreateBuilder mb, Tester tester) {
         Intent waitingIntent = activeTesterMap.get(tester.getId()).getTopIntent();
+        if (waitingIntent == null) return;
+        System.out.println("[DEBUG] generate question to " + tester.getName());
         try {
             String question = chatGPTService.queryMissingParameter(waitingIntent.getName(), waitingIntent.getEntities());
             mb.addContent(question);
+            System.out.println("[DEBUG][Question] " + question);
         } catch (JSONException e) {
             System.out.println("[ERROR] Before ChatGPT -> yaml to JSONObject exception");
             e.printStackTrace();

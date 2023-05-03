@@ -25,6 +25,23 @@ public class Tester {
         return this.name;
     }
 
+    public String cancelTopIntent() {
+        String topIntentName = getTopIntent().getName();
+        intentNameStack.remove(topIntentName);
+        intentMap.remove(topIntentName);
+        return topIntentName;
+    }
+
+    public Intent getTopIntent() {
+        if (!isWaitingForPerform()) return null;
+        String topIntentName = intentNameStack.peek();
+        return intentMap.get(topIntentName);
+    }
+
+    private boolean isWaitingForPerform() {
+        return !intentNameStack.isEmpty();
+    }
+
     public String updateIntent(JSONObject matchedIntentAndEntity, Properties capabilityYaml, Long expiredInterval) throws JSONException {
         Iterator intentIt = matchedIntentAndEntity.keys();
         while (intentIt.hasNext()) {
@@ -88,48 +105,60 @@ public class Tester {
             }
 
             // update the performable status of the intent
-            Intent topIntent = getTopIntent();
-            if (topIntent != null) {
-                Map<String, String> topIntentEntityMap = topIntent.getEntities();
-                if (!topIntentEntityMap.containsValue(null)) {
-                    intentMap.get(intentName).preparePerform();
-                }
-            }
+            Intent currentIntent = intentMap.get(intentName);
+            Map<String, String> currentIntentEntityMap = currentIntent.getEntities();
+            if (!currentIntentEntityMap.containsValue(null)) currentIntent.preparePerform();
         }
+
         return "ok";
     }
 
-    public boolean isWaitingForPerform() {
-        return !intentNameStack.isEmpty();
+    public List<Intent> getPerformableIntentList() {
+        ArrayList<Intent> performableIntentList = new ArrayList<>();
+        if (!isWaitingForPerform()) return performableIntentList;
+        for (Intent intent : intentMap.values()) {
+            if (intent.canPerform()) performableIntentList.add(intent);
+        }
+        return performableIntentList;
     }
 
-    public boolean canPerform() {
-        if (!isWaitingForPerform()) return false;
-        return Objects.requireNonNull(getTopIntent()).canPerform();
+    public List<String> removeExpiredIntent() {
+        ArrayList<String> removedIntentList = new ArrayList<>();
+        if (!isWaitingForPerform()) return removedIntentList;
+        for (Intent intent : intentMap.values()) {
+            if (System.currentTimeMillis() > intent.getExpiredTimestamp()) {
+                String intentName = intent.getName();
+                intentNameStack.remove(intentName);
+                intentMap.remove(intentName);
+                removedIntentList.add(intentName);
+            }
+        }
+        return removedIntentList;
     }
 
-    public Intent checkPerformInfo() {
-        if (!canPerform()) return null;
-        return getTopIntent();
+    public ArrayList<String> performAllPerformableIntent() {
+        List<Intent> performableIntentList = getPerformableIntentList();
+        ArrayList<String> performedIntentNameList = new ArrayList<>();
+        if (performableIntentList.isEmpty()) return null;
+        for (Intent intent : performableIntentList) {
+            String intentName = intent.getName();
+            intentNameStack.remove(intentName);
+            intentMap.remove(intentName);
+            performedIntentNameList.add(intentName);
+        }
+        return performedIntentNameList;
     }
 
-    public String performTopIntent() {
-        if (!canPerform()) return null;
-        String performedIntentName = intentNameStack.pop();
-        intentMap.remove(performedIntentName);
-        return performedIntentName;
-    }
-
-    public String cancelTopIntent() {
-        if (!canPerform()) return null;
-        String cancelledIntentName = intentNameStack.pop();
-        intentMap.remove(cancelledIntentName);
-        return cancelledIntentName;
-    }
-
-    public Intent getTopIntent() {
-        if (!isWaitingForPerform()) return null;
-        String topIntentName = intentNameStack.peek();
-        return intentMap.get(topIntentName);
+    public ArrayList<String> cancelAllPerformableIntent() {
+        List<Intent> performableIntentList = getPerformableIntentList();
+        ArrayList<String> cancelledIntentNameList = new ArrayList<>();
+        if (performableIntentList.isEmpty()) return null;
+        for (Intent intent : performableIntentList) {
+            String intentName = intent.getName();
+            intentNameStack.remove(intentName);
+            intentMap.remove(intentName);
+            cancelledIntentNameList.add(intentName);
+        }
+        return cancelledIntentNameList;
     }
 }
