@@ -49,7 +49,7 @@ public class Tester {
             JSONObject matchedEntitiesJSON = matchedIntentAndEntity.getJSONObject(intentName);
 
             // out of scope
-            if ("out_of_scope".equals(intentName)) {
+            if ("out_of_scope".equals(intentName) || "".equals(intentName)) {
                 System.out.println("[DEBUG] OUT OF SCOPE");
                 return "Sorry, the message you entered is beyond the scope of the capability.";
             }

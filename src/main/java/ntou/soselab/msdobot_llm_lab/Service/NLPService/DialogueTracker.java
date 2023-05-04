@@ -38,11 +38,11 @@ public class DialogueTracker {
     public MessageCreateData addTester(String testerId, String testerName) {
         MessageCreateBuilder mb = new MessageCreateBuilder();
         if (hasTester(testerId)) {
-            return mb.setContent("```properties" + "\nYou have started the lab.```").build();
+            return mb.setContent("```properties" + "\n[DEBUG] You have started the lab.```").build();
         } else {
             activeTesterMap.put(testerId, new Tester(testerId, testerName));
             System.out.println("[DEBUG] add tester: " + testerName);
-            return mb.setContent("<<TODO：實驗說明>>").build();
+            return mb.setContent("Let's start the lab!").build();
         }
     }
 
@@ -51,9 +51,9 @@ public class DialogueTracker {
         if (hasTester(testerId)) {
             activeTesterMap.remove(testerId);
             System.out.println("[DEBUG] remove tester: " + testerName);
-            return mb.setContent("```properties" + "\nThank you for your assistance.").build();
+            return mb.setContent("```properties" + "\n[DEBUG] Thank you for your assistance.").build();
         } else {
-            return mb.setContent("```properties" + "\nYou haven't started the lab yet.```").build();
+            return mb.setContent("```properties" + "\n[WARNING] You haven't started the lab yet.```").build();
         }
     }
 
@@ -65,7 +65,7 @@ public class DialogueTracker {
         MessageCreateBuilder mb = new MessageCreateBuilder();
 
         if (!activeTesterMap.containsKey(testerId)) {
-            return mb.setContent("```properties" + "\nSorry, you must use the slash command \"/lab_start\" to start this lab.```")
+            return mb.setContent("```properties" + "\n[WARNING] Sorry, you must use the slash command \"/lab_start\" to start this lab.```")
                     .build();
         }
 
@@ -85,7 +85,7 @@ public class DialogueTracker {
             return mb.setContent("Okay, we have cancelled the " + cancelledIntentName + " capability for you.").build();
         }
 
-        String errorMessage = "```properties" + "\nSorry, the system has encountered a formatting exception.```";
+        String errorMessage = "```properties" + "\n[WARNING] Sorry, the system has encountered a formatting exception.```";
         try {
             JSONObject matchedIntentAndEntity = chatGPTService.classifyIntentAndExtractEntity(testerInput);
             Properties capabilityYaml = capabilityLoader.getCapabilityYaml();
@@ -171,7 +171,7 @@ public class DialogueTracker {
         } catch (JSONException e) {
             System.out.println("[ERROR] Before ChatGPT -> yaml to JSONObject exception");
             e.printStackTrace();
-            mb.setContent("```properties" + "\nSorry, the system has encountered a formatting exception.```");
+            mb.setContent("```properties" + "\n[WARNING] Sorry, the system has encountered a formatting exception.```");
         }
     }
 
@@ -182,7 +182,7 @@ public class DialogueTracker {
         } catch (JSONException e) {
             System.out.println("[ERROR] Before ChatGPT -> yaml to JSONObject exception");
             e.printStackTrace();
-            return "```properties" + "\nSorry, the system has encountered a formatting exception.```";
+            return "```properties" + "\n[WARNING] Sorry, the system has encountered a formatting exception.```";
         }
     }
 }

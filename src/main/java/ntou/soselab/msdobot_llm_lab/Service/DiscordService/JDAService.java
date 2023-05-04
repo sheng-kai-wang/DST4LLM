@@ -12,18 +12,23 @@ public class JDAService {
 
     @Autowired
     public JDAService(Environment env,
+                      DiscordGeneralListener generalListener,
                       DiscordSlashCommandListener slashCommandListener,
-                      DiscordMessageListener messagelistener,
+                      DiscordMessageListener messageListener,
                       DiscordButtonListener buttonListener) {
 
         String APP_TOKEN = env.getProperty("discord.application.token");
         JDABuilder.createDefault(APP_TOKEN)
                 .enableIntents(GatewayIntent.MESSAGE_CONTENT)
+                .enableIntents(GatewayIntent.GUILD_MEMBERS)
+                .addEventListeners(generalListener)
                 .addEventListeners(slashCommandListener)
-                .addEventListeners(messagelistener)
+                .addEventListeners(messageListener)
                 .addEventListeners(buttonListener)
                 .build();
 
+        System.out.println();
         System.out.println("[DEBUG] JDA START!");
+        System.out.println();
     }
 }

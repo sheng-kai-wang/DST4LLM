@@ -88,11 +88,12 @@ public class ChatGPTService {
         String systemPrompt = loadSystemPrompt(INTENT_CLASSIFICATION_AND_ENTITY_EXTRACTION_FILE);
 
         Properties capabilityYaml = capabilityLoader.getCapabilityYaml();
-        capabilityYaml.put("out_of_scope", null);
+        capabilityYaml.put("out_of_scope", " ");
         String capabilityJsonString = new ObjectMapper().writeValueAsString(capabilityYaml);
 
         systemPrompt = systemPrompt.replace("<CAPABILITY_JSON>", capabilityJsonString);
 
+        System.out.println("=========== classifyIntentAndExtractEntity systemPrompt : " + systemPrompt);
         String completion = inference(systemPrompt, userPrompt);
 
         JSONObject completionJSON = new Gson().fromJson(completion, JSONObject.class);

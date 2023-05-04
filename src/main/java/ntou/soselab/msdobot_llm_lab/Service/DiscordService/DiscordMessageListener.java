@@ -28,15 +28,27 @@ public class DiscordMessageListener extends ListenerAdapter {
         if (event.getAuthor().isBot()) return;
 
         if (shouldReply(event)) {
+
+            System.out.println(">>> trigger message event");
+
             String userId = event.getAuthor().getId();
+            String userName = event.getAuthor().getName();
             String userInput = event.getMessage().getContentRaw();
+
+            System.out.println("[DEBUG] Receive Message");
+            System.out.println("[User Name] " + userName);
+            System.out.println("[User Input] " + userInput);
+
             MessageCreateData response = dialogueTracker.inputMessage(userId, userInput);
             event.getChannel().sendMessage(response).queue();
+
+            System.out.println("<<< end of current message event");
+            System.out.println();
         }
     }
 
     private boolean shouldReply(MessageReceivedEvent event) {
-        if (!event.getGuild().getId().equals(GUILD_ID)) return false;
+        if (event.isFromGuild() && !event.getGuild().getId().equals(GUILD_ID)) return false;
         String channelId = event.getChannel().getId();
         return event.isFromType(ChannelType.PRIVATE) || channelId.equals(EXAMPLE_CHANNEL_ID) || channelId.equals(DEMO_CHANNEL_ID);
     }

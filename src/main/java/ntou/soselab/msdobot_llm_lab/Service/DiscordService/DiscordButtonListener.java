@@ -22,6 +22,9 @@ public class DiscordButtonListener extends ListenerAdapter {
 
     @Override
     public void onButtonInteraction(@NotNull ButtonInteractionEvent event) {
+
+        System.out.println(">>> trigger button interaction event");
+
         User tester = event.getUser();
         String testerId = tester.getId();
         String testerName = tester.getName();
@@ -39,5 +42,8 @@ public class DiscordButtonListener extends ListenerAdapter {
                 .sendMessage("got it!\n" + buttonLabel + " " + intentNameList + "\n\n" + question)
                 .queue();
         System.out.println("[DEBUG] generate question to " + testerName);
+
+        System.out.println("<<< end of current button interaction event");
+        System.out.println();
     }
 }
