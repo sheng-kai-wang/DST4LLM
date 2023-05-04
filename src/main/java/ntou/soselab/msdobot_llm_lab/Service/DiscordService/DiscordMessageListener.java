@@ -1,12 +1,17 @@
 package ntou.soselab.msdobot_llm_lab.Service.DiscordService;
 
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
+import net.dv8tion.jda.api.utils.messages.MessageCreateRequest;
 import ntou.soselab.msdobot_llm_lab.Service.NLPService.DialogueTracker;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
+
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class DiscordMessageListener extends ListenerAdapter {
@@ -30,6 +35,8 @@ public class DiscordMessageListener extends ListenerAdapter {
         if (shouldReply(event)) {
 
             System.out.println(">>> trigger message event");
+
+            event.getChannel().sendMessage("got it, processing...\n").queue();
 
             String userId = event.getAuthor().getId();
             String userName = event.getAuthor().getName();

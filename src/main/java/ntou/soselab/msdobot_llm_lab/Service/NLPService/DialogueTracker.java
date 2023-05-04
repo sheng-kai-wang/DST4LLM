@@ -15,7 +15,9 @@ import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
+import java.awt.*;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -42,7 +44,9 @@ public class DialogueTracker {
         } else {
             activeTesterMap.put(testerId, new Tester(testerId, testerName));
             System.out.println("[DEBUG] add tester: " + testerName);
-            return mb.setContent("Let's start the lab!").build();
+            mb.addContent("Let's start the lab!\n");
+            mb.addContent("Please try to book a restaurant, hotel, train ticket, or plane ticket through me.");
+            return mb.build();
         }
     }
 
@@ -51,7 +55,7 @@ public class DialogueTracker {
         if (hasTester(testerId)) {
             activeTesterMap.remove(testerId);
             System.out.println("[DEBUG] remove tester: " + testerName);
-            return mb.setContent("```properties" + "\n[DEBUG] Thank you for your assistance.").build();
+            return mb.setContent("```properties" + "\n[INFO] Thank you for your assistance.```").build();
         } else {
             return mb.setContent("```properties" + "\n[WARNING] You haven't started the lab yet.```").build();
         }
@@ -88,8 +92,7 @@ public class DialogueTracker {
         String errorMessage = "```properties" + "\n[WARNING] Sorry, the system has encountered a formatting exception.```";
         try {
             JSONObject matchedIntentAndEntity = chatGPTService.classifyIntentAndExtractEntity(testerInput);
-            Properties capabilityYaml = capabilityLoader.getCapabilityYaml();
-            String response = currentTester.updateIntent(matchedIntentAndEntity, capabilityYaml, EXPIRED_INTERVAL);
+            String response = currentTester.updateIntent(matchedIntentAndEntity, capabilityLoader, EXPIRED_INTERVAL);
             mb.addContent(response);
         } catch (JsonParseException e) {
             System.out.println("[ERROR] After ChatGPT -> json string to JSONObject exception");
@@ -120,13 +123,14 @@ public class DialogueTracker {
     }
 
     private void generatePerformCheck(MessageCreateBuilder mb, Tester tester, List<Intent> performableIntentList) {
-        mb.addContent("Here is the capability you are about to perform.");
-        mb.addContent("Please use the BUTTON to indicate whether you want to proceed.");
+        mb.addContent("Here is the capability you are about to perform.\n");
+        mb.addContent("Please use the BUTTON to indicate whether you want to proceed.\n");
         System.out.println("[DEBUG] generate perform check to " + tester.getName());
         for (Intent intent : performableIntentList) {
             String intentName = intent.getName();
             EmbedBuilder eb = new EmbedBuilder();
             eb.setTitle(intentName);
+            eb.setColor(Color.ORANGE);
             System.out.println("[Intent] " + intentName);
             for (Map.Entry<String, String> entity : intent.getEntities().entrySet()) {
                 String entityName = entity.getKey();
@@ -136,10 +140,13 @@ public class DialogueTracker {
             }
             mb.addEmbeds(eb.build());
         }
-        mb.addActionRow(Button.primary("", "Perform"));
-        mb.addActionRow(Button.primary("", "Cancel"));
+        mb.setActionRow(Button.primary("Perform", "Perform"), Button.primary("Cancel", "Cancel"));
         waitingButtonTesterList.add(tester.getId());
         System.out.println("[DEBUG] Waiting for " + tester.getName() + "to click the button.");
+    }
+
+    public boolean isWaitingTester(String testerId) {
+        return waitingButtonTesterList.contains(testerId);
     }
 
     public void removeWaitingTesterList(String testerId) {
@@ -162,6 +169,7 @@ public class DialogueTracker {
 
     private void generateQuestion(MessageCreateBuilder mb, Tester tester) {
         Intent waitingIntent = activeTesterMap.get(tester.getId()).getTopIntent();
+        // No intent or entity was found
         if (waitingIntent == null) return;
         System.out.println("[DEBUG] generate question to " + tester.getName());
         try {
@@ -177,6 +185,7 @@ public class DialogueTracker {
 
     public String generateQuestionString(String testerId) {
         Intent waitingIntent = activeTesterMap.get(testerId).getTopIntent();
+        if (waitingIntent == null) return "";
         try {
             return chatGPTService.queryMissingParameter(waitingIntent.getName(), waitingIntent.getEntities());
         } catch (JSONException e) {

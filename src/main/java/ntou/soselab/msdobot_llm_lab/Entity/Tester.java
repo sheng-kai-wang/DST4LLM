@@ -1,5 +1,9 @@
 package ntou.soselab.msdobot_llm_lab.Entity;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import ntou.soselab.msdobot_llm_lab.Service.CapabilityLoader;
+import org.springframework.boot.configurationprocessor.json.JSONArray;
 import org.springframework.boot.configurationprocessor.json.JSONException;
 import org.springframework.boot.configurationprocessor.json.JSONObject;
 
@@ -42,7 +46,7 @@ public class Tester {
         return !intentNameStack.isEmpty();
     }
 
-    public String updateIntent(JSONObject matchedIntentAndEntity, Properties capabilityYaml, Long expiredInterval) throws JSONException {
+    public String updateIntent(JSONObject matchedIntentAndEntity, CapabilityLoader capabilityLoader, Long expiredInterval) throws JSONException {
         Iterator intentIt = matchedIntentAndEntity.keys();
         while (intentIt.hasNext()) {
             String intentName = intentIt.next().toString();
@@ -56,12 +60,13 @@ public class Tester {
 
             // only entity
             if ("no_intent".equals(intentName)) {
-                Map<String, String> originalEntityMap = Objects.requireNonNull(getTopIntent()).getEntities();
+                if (getTopIntent() == null) break;
+                Map<String, String> originalEntityMap = getTopIntent().getEntities();
                 Iterator entityIt = matchedEntitiesJSON.keys();
                 while (entityIt.hasNext()) {
                     String matchedEntityName = entityIt.next().toString();
                     String matchedEntityValue = matchedEntitiesJSON.getString(matchedEntityName);
-                    if ("null".equals(matchedEntityValue) || matchedEntityValue == null) continue;
+                    if (isIgnoredEntity(matchedEntityValue)) continue;
                     originalEntityMap.replace(matchedEntityName, matchedEntityValue);
                 }
                 System.out.println("[DEBUG] NO intent, ONLY entity");
@@ -72,13 +77,20 @@ public class Tester {
             // push new intent
             if (!intentNameStack.contains(intentName)) {
                 Map<String, String> newEntityMap = new HashMap<>();
-                List<String> allEntityName = (List<String>) capabilityYaml.get(intentName);
-                for (String entityName : allEntityName) {
-                    if (matchedEntitiesJSON.has(entityName)) {
-                        String entityValue = matchedEntitiesJSON.get(entityName).toString();
-                        newEntityMap.put(entityName, entityValue);
-                    } else {
+                String allEntityNameJsonString = capabilityLoader.getCapabilityByJsonPath("$." + intentName);
+                List allEntityNameList;
+                try {
+                    allEntityNameList = new ObjectMapper().readValue(allEntityNameJsonString, List.class);
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException(e);
+                }
+                for (Object entityNameObj : allEntityNameList) {
+                    String entityName = entityNameObj.toString();
+                    String entityValue = matchedEntitiesJSON.get(entityName).toString();
+                    if (!matchedEntitiesJSON.has(entityName) || isIgnoredEntity(entityValue)) {
                         newEntityMap.put(entityName, null);
+                    } else {
+                        newEntityMap.put(entityName, entityValue);
                     }
                 }
                 Long expiredTimestamp = System.currentTimeMillis() + expiredInterval;
@@ -98,7 +110,7 @@ public class Tester {
                 while (entityIt.hasNext()) {
                     String matchedEntityName = entityIt.next().toString();
                     String matchedEntityValue = matchedEntitiesJSON.getString(matchedEntityName);
-                    if ("null".equals(matchedEntityValue) || matchedEntityValue == null) continue;
+                    if (isIgnoredEntity(matchedEntityValue)) continue;
                     originalEntityMap.replace(matchedEntityName, matchedEntityValue);
                 }
                 System.out.println("[DEBUG] update original intent: " + intentName);
@@ -110,7 +122,33 @@ public class Tester {
             if (!currentIntentEntityMap.containsValue(null)) currentIntent.preparePerform();
         }
 
-        return "ok";
+        System.out.println("[DEBUG] The intent map for " + this.name + " currently: ");
+        System.out.println(getIntentMapString());
+        return "ok\n";
+    }
+
+    private boolean isIgnoredEntity(String entityValue) {
+        return "null".equals(entityValue) || "unspecified".equals(entityValue) || "".equals(entityValue) || entityValue == null;
+    }
+
+    private String getIntentMapString() {
+        StringBuilder intentSb = new StringBuilder();
+        intentSb.append("{ ");
+        for (Map.Entry<String, Intent> intentEntry : intentMap.entrySet()) {
+            Map<String, String> entities = intentEntry.getValue().getEntities();
+            StringBuilder entitySb = new StringBuilder();
+            entitySb.append("[ ");
+            for (Map.Entry<String, String> entityEntry : entities.entrySet()) {
+                entitySb.append(entityEntry.getKey()).append(": ").append(entityEntry.getValue()).append(", ");
+            }
+            entitySb.delete(entitySb.length() - 2, entitySb.length());
+            entitySb.append(" ]");
+
+            intentSb.append(intentEntry.getKey()).append(": ").append(entitySb).append(", ");
+        }
+        intentSb.delete(intentSb.length() - 2, intentSb.length());
+        intentSb.append(" }");
+        return intentSb.toString();
     }
 
     public List<Intent> getPerformableIntentList() {
@@ -125,7 +163,10 @@ public class Tester {
     public List<String> removeExpiredIntent() {
         ArrayList<String> removedIntentList = new ArrayList<>();
         if (!isWaitingForPerform()) return removedIntentList;
+        System.out.println("======== intentMap.keySet(): " + intentMap.keySet());
+        System.out.println("===== intentMap.get('hotel_booking'): " + intentMap.get("hotel_booking"));
         for (Intent intent : intentMap.values()) {
+            System.out.println("====== intent.getName(): " + intent.getName());
             if (System.currentTimeMillis() > intent.getExpiredTimestamp()) {
                 String intentName = intent.getName();
                 intentNameStack.remove(intentName);
