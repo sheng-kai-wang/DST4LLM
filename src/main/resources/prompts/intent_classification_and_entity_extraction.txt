@@ -6,3 +6,6 @@ The following is the JSON format you will output, "< >" represents the positions
 
 If only entities, please output:
 {"no_intent":{"<entity_name>", "<entity_value>}}
+
+If no relevant intent, please output:
+{"out_of_scope":{}}

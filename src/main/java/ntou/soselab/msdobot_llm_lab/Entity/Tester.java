@@ -69,6 +69,7 @@ public class Tester {
                     if (isIgnoredEntity(matchedEntityValue)) continue;
                     originalEntityMap.replace(matchedEntityName, matchedEntityValue);
                 }
+                getTopIntent().updateExpiredTimestamp(expiredInterval);
                 System.out.println("[DEBUG] NO intent, ONLY entity");
                 System.out.println("[DEBUG] update original intent: " + intentNameStack.peek());
                 break;
@@ -86,12 +87,12 @@ public class Tester {
                 }
                 for (Object entityNameObj : allEntityNameList) {
                     String entityName = entityNameObj.toString();
-                    String entityValue = matchedEntitiesJSON.get(entityName).toString();
-                    if (!matchedEntitiesJSON.has(entityName) || isIgnoredEntity(entityValue)) {
-                        newEntityMap.put(entityName, null);
-                    } else {
-                        newEntityMap.put(entityName, entityValue);
+                    if (matchedEntitiesJSON.has(entityName)) {
+                        String entityValue = matchedEntitiesJSON.get(entityName).toString();
+                        if (!isIgnoredEntity(entityValue)) newEntityMap.put(entityName, entityValue);
+                        continue;
                     }
+                    newEntityMap.put(entityName, null);
                 }
                 Long expiredTimestamp = System.currentTimeMillis() + expiredInterval;
                 Intent newIntent = new Intent(intentName, expiredTimestamp, newEntityMap);
@@ -113,6 +114,7 @@ public class Tester {
                     if (isIgnoredEntity(matchedEntityValue)) continue;
                     originalEntityMap.replace(matchedEntityName, matchedEntityValue);
                 }
+                intentMap.get(intentName).updateExpiredTimestamp(expiredInterval);
                 System.out.println("[DEBUG] update original intent: " + intentName);
             }
 
@@ -128,7 +130,11 @@ public class Tester {
     }
 
     private boolean isIgnoredEntity(String entityValue) {
-        return "null".equals(entityValue) || "unspecified".equals(entityValue) || "".equals(entityValue) || entityValue == null;
+        return entityValue == null ||
+                entityValue.isEmpty() ||
+                "null".equals(entityValue) ||
+                "unspecified".equals(entityValue) ||
+                entityValue.startsWith("<");
     }
 
     private String getIntentMapString() {
@@ -155,8 +161,12 @@ public class Tester {
         ArrayList<Intent> performableIntentList = new ArrayList<>();
         if (!isWaitingForPerform()) return performableIntentList;
         for (Intent intent : intentMap.values()) {
+            System.out.println("======= intent: " + intent.getName());
+            System.out.println("======= intent: " + intent.getEntities());
+            System.out.println("======= intent: " + intent.canPerform());
             if (intent.canPerform()) performableIntentList.add(intent);
         }
+        System.out.println("========= performableIntentList: " + performableIntentList);
         return performableIntentList;
     }
 

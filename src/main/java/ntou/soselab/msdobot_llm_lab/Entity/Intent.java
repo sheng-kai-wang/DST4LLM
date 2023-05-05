@@ -6,12 +6,12 @@ public class Intent {
 
     private final String NAME;
     private Map<String, String> entities;
-    private final Long EXPIRED_TIMESTAMP;
+    private Long expiredTimestamp;
     private boolean canPerform = false;
 
     public Intent(String name, Long expiredTimestamp, Map<String, String> entities) {
         this.NAME = name;
-        this.EXPIRED_TIMESTAMP = expiredTimestamp;
+        this.expiredTimestamp = expiredTimestamp;
         this.entities = entities;
     }
 
@@ -24,7 +24,11 @@ public class Intent {
     }
 
     public Long getExpiredTimestamp() {
-        return this.EXPIRED_TIMESTAMP;
+        return this.expiredTimestamp;
+    }
+
+    public void updateExpiredTimestamp(Long expiredInterval) {
+        this.expiredTimestamp = System.currentTimeMillis() + expiredInterval;
     }
 
     public boolean canPerform() {
