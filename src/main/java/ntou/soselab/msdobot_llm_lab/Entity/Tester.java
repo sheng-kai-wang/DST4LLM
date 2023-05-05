@@ -89,8 +89,10 @@ public class Tester {
                     String entityName = entityNameObj.toString();
                     if (matchedEntitiesJSON.has(entityName)) {
                         String entityValue = matchedEntitiesJSON.get(entityName).toString();
-                        if (!isIgnoredEntity(entityValue)) newEntityMap.put(entityName, entityValue);
-                        continue;
+                        if (!isIgnoredEntity(entityValue)) {
+                            newEntityMap.put(entityName, entityValue);
+                            continue;
+                        }
                     }
                     newEntityMap.put(entityName, null);
                 }
@@ -161,28 +163,26 @@ public class Tester {
         ArrayList<Intent> performableIntentList = new ArrayList<>();
         if (!isWaitingForPerform()) return performableIntentList;
         for (Intent intent : intentMap.values()) {
-            System.out.println("======= intent: " + intent.getName());
-            System.out.println("======= intent: " + intent.getEntities());
-            System.out.println("======= intent: " + intent.canPerform());
             if (intent.canPerform()) performableIntentList.add(intent);
         }
-        System.out.println("========= performableIntentList: " + performableIntentList);
         return performableIntentList;
     }
 
     public List<String> removeExpiredIntent() {
         ArrayList<String> removedIntentList = new ArrayList<>();
         if (!isWaitingForPerform()) return removedIntentList;
-        System.out.println("======== intentMap.keySet(): " + intentMap.keySet());
-        System.out.println("===== intentMap.get('hotel_booking'): " + intentMap.get("hotel_booking"));
+        // to avoid java.util.ConcurrentModificationException
+        List<String> intentToRemoveList = new ArrayList<>();
         for (Intent intent : intentMap.values()) {
-            System.out.println("====== intent.getName(): " + intent.getName());
             if (System.currentTimeMillis() > intent.getExpiredTimestamp()) {
                 String intentName = intent.getName();
                 intentNameStack.remove(intentName);
-                intentMap.remove(intentName);
-                removedIntentList.add(intentName);
+                intentToRemoveList.add(intentName);
             }
+        }
+        for (String intentName : intentToRemoveList) {
+            intentMap.remove(intentName);
+            removedIntentList.add(intentName);
         }
         return removedIntentList;
     }
