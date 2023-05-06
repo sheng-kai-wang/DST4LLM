@@ -80,8 +80,8 @@ public class DialogueTracker {
             return mb.setContent("Sorry, the message you entered is beyond the scope of the capability.").build();
         }
 
-        if (chatGPTService.isEndOfCapability(testerInput)) {
-            System.out.println("[DEBUG] End Of Capability");
+        if (chatGPTService.isEndOfTopic(testerInput)) {
+            System.out.println("[DEBUG] End Of Topic");
             String cancelledIntentName = currentTester.cancelTopIntent();
             if (cancelledIntentName == null) {
                 return mb.setContent("There are no capabilities being prepared for perform yet.").build();

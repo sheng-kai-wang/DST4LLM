@@ -1,7 +1,6 @@
 package ntou.soselab.msdobot_llm_lab.Service.NLPService;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonParseException;
 import ntou.soselab.msdobot_llm_lab.Service.CapabilityLoader;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +17,6 @@ import org.springframework.util.FileCopyUtils;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
-import java.util.Properties;
 
 @Service
 public class ChatGPTService {
@@ -28,7 +26,7 @@ public class ChatGPTService {
     private final String OPENAI_API_MODEL;
 
     private final String PROMPT_INJECTION_DETECTION_FILE;
-    private final String END_OF_CAPABILITY_FILE;
+    private final String END_OF_TOPIC_FILE;
     private final String INTENT_CLASSIFICATION_AND_ENTITY_EXTRACTION_FILE;
     private final String QUERYING_MISSING_PARAMETERS_FILE;
 
@@ -41,7 +39,7 @@ public class ChatGPTService {
         this.OPENAI_API_MODEL = env.getProperty("openai.api.model");
 
         this.PROMPT_INJECTION_DETECTION_FILE = loadSystemPrompt(env.getProperty("prompts.prompt_injection_detection.file"));
-        this.END_OF_CAPABILITY_FILE = loadSystemPrompt(env.getProperty("prompts.end_of_capability.file"));
+        this.END_OF_TOPIC_FILE = loadSystemPrompt(env.getProperty("prompts.end_of_topic.file"));
         this.INTENT_CLASSIFICATION_AND_ENTITY_EXTRACTION_FILE = loadSystemPrompt(env.getProperty("prompts.intent_classification_and_entity_extraction.file"));
         this.QUERYING_MISSING_PARAMETERS_FILE = loadSystemPrompt(env.getProperty("prompts.querying_missing_parameters.file"));
 
@@ -59,15 +57,15 @@ public class ChatGPTService {
         return isPromptInjection;
     }
 
-    public boolean isEndOfCapability(String userPrompt) {
-        System.out.println("[DEBUG] trigger isEndOfCapability()");
+    public boolean isEndOfTopic(String userPrompt) {
+        System.out.println("[DEBUG] trigger isEndOfTopic()");
         System.out.println("[User Prompt] " + userPrompt);
 
-        String completion = inference(END_OF_CAPABILITY_FILE, userPrompt);
+        String completion = inference(END_OF_TOPIC_FILE, userPrompt);
 
-        boolean isEndOfCapability = completion.contains("true");
-        System.out.println("[Is End Of Capability?] " + isEndOfCapability);
-        return isEndOfCapability;
+        boolean isEndOfTopic = completion.contains("true");
+        System.out.println("[Is End Of Topic?] " + isEndOfTopic);
+        return isEndOfTopic;
     }
 
     /**
