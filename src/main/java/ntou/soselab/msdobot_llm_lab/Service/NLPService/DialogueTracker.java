@@ -57,7 +57,11 @@ public class DialogueTracker {
         if (hasTester(testerId)) {
             activeTesterMap.remove(testerId);
             System.out.println("[DEBUG] remove tester: " + testerName);
-            return mb.setContent("```properties" + "\n[INFO] Thank you for your assistance.```").build();
+            mb.addContent("```properties" + "\n[INFO] Thank you for your assistance.```\n");
+            mb.addContent("Please remember to fill out our feedback form:\n");
+            mb.addContent("https://forms.gle/2qZtBQDJqsv6cnao8\n");
+            mb.addContent("Thank you.\n");
+            return mb.build();
         } else {
             return mb.setContent("```properties" + "\n[WARNING] You haven't started the lab yet.```").build();
         }
