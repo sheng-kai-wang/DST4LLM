@@ -29,4 +29,7 @@
 #bot-example 頻道可以看到使用範例
 #feedback 頻道您可以回覆任何遇到的問題，也可直接私訊 @kermit#2351
 
+待您與聊天機器人對話後，希望能耽誤您一分鐘時間回饋給我們使用心得，以下為表單連結，謝謝！
+回饋表單：https://forms.gle/2qZtBQDJqsv6cnao8
+
 本伺服器永久邀請連結：https://discord.gg/F2R7v8DTPd
