@@ -41,11 +41,19 @@ public class DiscordMessageListener extends ListenerAdapter {
             System.out.println("[User Name] " + userName);
             System.out.println("[User Input] " + userInput);
 
-            MessageCreateData response = dialogueTracker.inputMessage(userId, userInput);
-            event.getChannel().sendMessage(response).queue();
+            try {
+                MessageCreateData response = dialogueTracker.inputMessage(userId, userInput);
+                event.getChannel().sendMessage(response).queue();
 
-            System.out.println("<<< end of current message event");
-            System.out.println();
+            } catch (Exception e) {
+                String errorMessage = "```properties" + "\n[WARNING] Sorry, the system is currently overloaded with other requests.```";
+                event.getChannel().sendMessage(errorMessage).queue();
+                e.printStackTrace();
+
+            } finally {
+                System.out.println("<<< end of current message event");
+                System.out.println();
+            }
         }
     }
 

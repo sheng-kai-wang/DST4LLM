@@ -9,9 +9,9 @@ import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import ntou.soselab.msdobot_llm_lab.Entity.Intent;
 import ntou.soselab.msdobot_llm_lab.Entity.Tester;
 import ntou.soselab.msdobot_llm_lab.Service.CapabilityLoader;
+import org.json.JSONObject;
+import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.configurationprocessor.json.JSONException;
-import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
