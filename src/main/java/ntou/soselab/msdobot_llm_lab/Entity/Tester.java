@@ -3,7 +3,6 @@ package ntou.soselab.msdobot_llm_lab.Entity;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import ntou.soselab.msdobot_llm_lab.Service.CapabilityLoader;
-import org.springframework.boot.configurationprocessor.json.JSONArray;
 import org.springframework.boot.configurationprocessor.json.JSONException;
 import org.springframework.boot.configurationprocessor.json.JSONObject;
 
