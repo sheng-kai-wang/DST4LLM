@@ -28,7 +28,7 @@ public class DialogueTracker {
     private List<String> waitingButtonTesterList = new ArrayList<>();
     private final Long EXPIRED_INTERVAL;
     private ChatGPTService chatGPTService;
-    private final CapabilityLoader capabilityLoader;
+    private CapabilityLoader capabilityLoader;
 
     @Autowired
     public DialogueTracker(Environment env, ChatGPTService chatGPTService, CapabilityLoader capabilityLoader) {

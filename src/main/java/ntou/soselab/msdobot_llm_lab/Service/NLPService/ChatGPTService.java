@@ -30,7 +30,7 @@ public class ChatGPTService {
     private final String INTENT_CLASSIFICATION_AND_ENTITY_EXTRACTION_FILE;
     private final String QUERYING_MISSING_PARAMETERS_FILE;
 
-    private final CapabilityLoader capabilityLoader;
+    private CapabilityLoader capabilityLoader;
 
     @Autowired
     public ChatGPTService(Environment env, CapabilityLoader capabilityLoader) {
