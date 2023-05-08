@@ -25,8 +25,8 @@ public class CapabilityLoader {
     @Autowired
     public CapabilityLoader(Environment env) {
         this.CAPABILITY_FILE = env.getProperty("capability.file");
-        loadCapabilityYaml();
-        loadCapabilityYamlStringForChatGPT();
+        this.capabilityJsonString = loadCapabilityYaml();
+        this.capabilityYamlStringForChatGPT = loadCapabilityYamlStringForChatGPT();
     }
 
     public String getCapabilityByJsonPath(String jsonPath) {
@@ -41,7 +41,7 @@ public class CapabilityLoader {
         return this.capabilityYamlStringForChatGPT;
     }
 
-    private void loadCapabilityYaml() {
+    private String loadCapabilityYaml() {
         InputStream is;
         Object yamlObj;
         String capabilityJsonString;
@@ -58,10 +58,10 @@ public class CapabilityLoader {
         System.out.println("[DEBUG] all capability:");
         System.out.println(yamlObj);
         System.out.println();
-        this.capabilityJsonString = capabilityJsonString;
+        return capabilityJsonString;
     }
 
-    private void loadCapabilityYamlStringForChatGPT() {
+    private String loadCapabilityYamlStringForChatGPT() {
         InputStream is;
         try {
             is = new ClassPathResource(CAPABILITY_FILE).getInputStream();
@@ -80,6 +80,6 @@ public class CapabilityLoader {
         }
 
 //        sb.append("out_of_scope:");
-        this.capabilityYamlStringForChatGPT = sb.toString();
+        return sb.toString();
     }
 }

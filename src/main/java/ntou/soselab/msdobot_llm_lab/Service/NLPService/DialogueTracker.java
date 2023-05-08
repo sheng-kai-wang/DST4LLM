@@ -24,14 +24,16 @@ import java.util.concurrent.ConcurrentMap;
 @Service
 public class DialogueTracker {
 
-    private ConcurrentMap<String, Tester> activeTesterMap = new ConcurrentHashMap<>();
-    private List<String> waitingButtonTesterList = new ArrayList<>();
+    private ConcurrentMap<String, Tester> activeTesterMap;
+    private List<String> waitingButtonTesterList;
     private final Long EXPIRED_INTERVAL;
     private ChatGPTService chatGPTService;
     private CapabilityLoader capabilityLoader;
 
     @Autowired
     public DialogueTracker(Environment env, ChatGPTService chatGPTService, CapabilityLoader capabilityLoader) {
+        this.activeTesterMap = new ConcurrentHashMap<>();
+        this.waitingButtonTesterList = new ArrayList<>();
         this.EXPIRED_INTERVAL = Long.valueOf(Objects.requireNonNull(env.getProperty("intent.expired_time")));
         this.chatGPTService = chatGPTService;
         this.capabilityLoader = capabilityLoader;

@@ -12,12 +12,14 @@ public class Tester {
 
     private final String TESTER_ID;
     private String name;
-    private Stack<String> intentNameStack = new Stack<>();
-    private Map<String, Intent> intentMap = new HashMap<>();
+    private Stack<String> intentNameStack;
+    private Map<String, Intent> intentMap;
 
     public Tester(String testerId, String name) {
         this.TESTER_ID = testerId;
         this.name = name;
+        this.intentNameStack = new Stack<>();
+        this.intentMap = new HashMap<>();
     }
 
     public String getId() {

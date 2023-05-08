@@ -7,12 +7,13 @@ public class Intent {
     private final String NAME;
     private Map<String, String> entities;
     private Long expiredTimestamp;
-    private boolean canPerform = false;
+    private boolean canPerform;
 
     public Intent(String name, Long expiredTimestamp, Map<String, String> entities) {
         this.NAME = name;
-        this.expiredTimestamp = expiredTimestamp;
         this.entities = entities;
+        this.expiredTimestamp = expiredTimestamp;
+        this.canPerform = false;
     }
 
     public String getName() {
