@@ -37,3 +37,4 @@ build/
 
 ### Sensitive Information ###
 src/main/resources/application.properties
+app.jar
