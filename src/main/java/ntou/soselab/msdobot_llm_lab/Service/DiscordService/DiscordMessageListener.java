@@ -13,15 +13,13 @@ import java.util.Date;
 @Service
 public class DiscordMessageListener extends ListenerAdapter {
 
-    private final String EXAMPLE_CHANNEL_ID;
-    private final String DEMO_CHANNEL_ID;
     private final String GUILD_ID;
+    private final String EXAMPLE_CHANNEL_ID;
     private DialogueTracker dialogueTracker;
 
     public DiscordMessageListener(Environment env, DialogueTracker dialogueTracker) {
-        this.EXAMPLE_CHANNEL_ID = env.getProperty("discord.channel.example.id");
-        this.DEMO_CHANNEL_ID = env.getProperty("discord.channel.demo.id");
         this.GUILD_ID = env.getProperty("discord.guild.id");
+        this.EXAMPLE_CHANNEL_ID = env.getProperty("discord.channel.example.id");
         this.dialogueTracker = dialogueTracker;
     }
 
@@ -66,6 +64,6 @@ public class DiscordMessageListener extends ListenerAdapter {
     private boolean shouldReply(MessageReceivedEvent event) {
         if (event.isFromGuild() && !event.getGuild().getId().equals(GUILD_ID)) return false;
         String channelId = event.getChannel().getId();
-        return event.isFromType(ChannelType.PRIVATE) || channelId.equals(EXAMPLE_CHANNEL_ID) || channelId.equals(DEMO_CHANNEL_ID);
+        return event.isFromType(ChannelType.PRIVATE) || channelId.equals(EXAMPLE_CHANNEL_ID);
     }
 }
