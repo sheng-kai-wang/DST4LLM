@@ -5,7 +5,4 @@ ENV TZ=Asia/Taipei
 
 COPY app.jar app.jar
 
-RUN ["service", "rsyslog", "restart"]
-RUN ["service", "cron", "restart"]
-
-ENTRYPOINT ["java", "-jar", "app.jar"]d
+ENTRYPOINT ["java", "-jar", "app.jar"]
