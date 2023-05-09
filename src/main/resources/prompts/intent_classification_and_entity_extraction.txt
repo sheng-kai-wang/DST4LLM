@@ -1,4 +1,4 @@
-Please list the intent and entity information of the user's message, and sort the possible intents in ascending order of confidence, where confidence is a floating-point number between 0 and 1. A sentence can contain multiple intents or entities, or only intents or entities. The following are the possible intents and entities:
+Please list the intent and entity information of the user's message, and sort the possible intents in reverse order of the appearance. A sentence can contain multiple intents or entities, or only intents or entities. The following are the possible intents and entities:
 <CAPABILITY_JSON>
 
 The following is the JSON format you will output, "< >" represents the positions you need to fill in. In JSON, do not use duplicate keys, do not include the objects of entity_name and entity_value if the user has not provided them, do not output any content outside the JSON, and do not output the confidence:

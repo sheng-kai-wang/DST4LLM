@@ -9,6 +9,8 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
+
 @Service
 public class DiscordSlashCommandListener extends ListenerAdapter {
 
@@ -24,23 +26,27 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
 
         System.out.println(">>> trigger slash command event");
 
-        //        if (event.isFromGuild()) return;
+        System.out.println("[TIME] " + new Date());
+
         String eventName = event.getName();
         User user = event.getUser();
         String userId = user.getId();
         String userName = user.getName();
+
         System.out.println("[DEBUG] slash command " + eventName);
         System.out.println("[User ID] " + userId);
         System.out.println("[User Name] " + userName);
 
-        if ("lab_start".equals(eventName)) {
-            MessageCreateData response = dialogueTracker.addTester(userId, userName);
-            event.reply(response).queue();
-        }
+        if (!event.isFromGuild()) {
+            if ("lab_start".equals(eventName)) {
+                MessageCreateData response = dialogueTracker.addTester(userId, userName);
+                event.reply(response).queue();
+            }
 
-        if ("lab_end".equals(eventName)) {
-            MessageCreateData response = dialogueTracker.removeTester(userId, userName);
-            event.reply(response).queue();
+            if ("lab_end".equals(eventName)) {
+                MessageCreateData response = dialogueTracker.removeTester(userId, userName);
+                event.reply(response).queue();
+            }
         }
 
         System.out.println("<<< end of current slash command event");

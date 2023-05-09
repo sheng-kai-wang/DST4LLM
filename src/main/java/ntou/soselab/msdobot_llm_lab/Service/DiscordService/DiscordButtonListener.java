@@ -8,6 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -24,6 +25,8 @@ public class DiscordButtonListener extends ListenerAdapter {
     public void onButtonInteraction(@NotNull ButtonInteractionEvent event) {
 
         System.out.println(">>> trigger button interaction event");
+
+        System.out.println("[TIME] " + new Date());
 
         User tester = event.getUser();
         String testerId = tester.getId();

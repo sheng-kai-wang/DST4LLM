@@ -8,6 +8,8 @@ import ntou.soselab.msdobot_llm_lab.Service.NLPService.DialogueTracker;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
+
 @Service
 public class DiscordMessageListener extends ListenerAdapter {
 
@@ -31,6 +33,8 @@ public class DiscordMessageListener extends ListenerAdapter {
 
             System.out.println(">>> trigger message event");
 
+            System.out.println("[TIME] " + new Date());
+
             event.getChannel().sendMessage("got it, processing...\n").queue();
 
             String userId = event.getAuthor().getId();
@@ -48,6 +52,8 @@ public class DiscordMessageListener extends ListenerAdapter {
             } catch (Exception e) {
                 String errorMessage = "```properties" + "\n[WARNING] Sorry, the system is currently overloaded with other requests.```";
                 event.getChannel().sendMessage(errorMessage).queue();
+                System.out.println("[Error] maybe the system is currently overloaded with other requests.");
+                System.out.println(e.getMessage());
                 e.printStackTrace();
 
             } finally {

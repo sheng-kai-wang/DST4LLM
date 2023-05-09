@@ -16,6 +16,7 @@ import org.springframework.util.FileCopyUtils;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Date;
 
 @Service
 public class DiscordGeneralListener extends ListenerAdapter {
@@ -31,6 +32,8 @@ public class DiscordGeneralListener extends ListenerAdapter {
     public void onReady(@NotNull ReadyEvent event) {
 
         System.out.println(">>> trigger ready event");
+
+        System.out.println("[TIME] " + new Date());
 
         event.getJDA()
                 .upsertCommand("lab_start", "Start the lab")
