@@ -73,7 +73,11 @@ public class Tester {
                 getTopIntent().updateExpiredTimestamp(expiredInterval);
                 System.out.println("[DEBUG] NO intent, ONLY entity");
                 System.out.println("[DEBUG] update original intent: " + intentNameStack.peek());
-                break;
+
+                // update the performable status of the TOP intent
+                Intent currentIntent = getTopIntent();
+                updatePerformableStatusOfIntent(currentIntent);
+                continue;
             }
 
             // push new intent
@@ -123,8 +127,7 @@ public class Tester {
 
             // update the performable status of the intent
             Intent currentIntent = intentMap.get(intentName);
-            Map<String, String> currentIntentEntityMap = currentIntent.getEntities();
-            if (!currentIntentEntityMap.containsValue(null)) currentIntent.preparePerform();
+            updatePerformableStatusOfIntent(currentIntent);
         }
 
         System.out.println("[DEBUG] The intent map for " + this.name + " currently: ");
@@ -137,7 +140,15 @@ public class Tester {
                 entityValue.isEmpty() ||
                 "null".equals(entityValue) ||
                 "unspecified".equals(entityValue) ||
+                "未提供".equals(entityValue) ||
                 entityValue.startsWith("<");
+    }
+
+    private void updatePerformableStatusOfIntent(Intent intent) {
+        Map<String, String> currentIntentEntityMap = intent.getEntities();
+        System.out.println("[DEBUG] Current Intent's Entity Map:");
+        System.out.println(currentIntentEntityMap);
+        if (!currentIntentEntityMap.containsValue(null)) intent.preparePerform();
     }
 
     private String getIntentMapString() {
@@ -162,9 +173,16 @@ public class Tester {
 
     public List<Intent> getPerformableIntentList() {
         ArrayList<Intent> performableIntentList = new ArrayList<>();
-        if (!isWaitingForPerform()) return performableIntentList;
+        if (!isWaitingForPerform()) {
+            System.out.println("[DEBUG] NO Performable Intent");
+            return performableIntentList;
+        }
+        System.out.println("[DEBUG] Performable Intent:");
         for (Intent intent : intentMap.values()) {
-            if (intent.canPerform()) performableIntentList.add(intent);
+            if (intent.canPerform()) {
+                System.out.println("[Intent Name] " + intent.getName());
+                performableIntentList.add(intent);
+            }
         }
         return performableIntentList;
     }
