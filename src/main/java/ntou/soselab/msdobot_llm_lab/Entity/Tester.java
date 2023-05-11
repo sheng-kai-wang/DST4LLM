@@ -83,7 +83,14 @@ public class Tester {
             // push new intent
             if (!intentNameStack.contains(intentName)) {
                 Map<String, String> newEntityMap = new HashMap<>();
-                String allEntityNameJsonString = capabilityLoader.getCapabilityByJsonPath("$." + intentName);
+                String allEntityNameJsonString;
+                // ignore undefined intent
+                try {
+                    allEntityNameJsonString = capabilityLoader.getCapabilityByJsonPath("$." + intentName);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    continue;
+                }
                 List allEntityNameList;
                 try {
                     allEntityNameList = new ObjectMapper().readValue(allEntityNameJsonString, List.class);
@@ -93,7 +100,12 @@ public class Tester {
                 for (Object entityNameObj : allEntityNameList) {
                     String entityName = entityNameObj.toString();
                     if (matchedEntitiesJSON.has(entityName)) {
-                        String entityValue = matchedEntitiesJSON.get(entityName).toString();
+                        String entityValue = null;
+                        Object entityValueObj = matchedEntitiesJSON.opt(entityName);
+                        // avoid the value is JSONObject
+                        if (entityValueObj instanceof String) {
+                            entityValue = matchedEntitiesJSON.getString(entityName);
+                        }
                         if (!isIgnoredEntity(entityValue)) {
                             newEntityMap.put(entityName, entityValue);
                             continue;
@@ -117,7 +129,12 @@ public class Tester {
                 }
                 while (entityIt.hasNext()) {
                     String matchedEntityName = entityIt.next().toString();
-                    String matchedEntityValue = matchedEntitiesJSON.getString(matchedEntityName);
+                    String matchedEntityValue = null;
+                    Object matchedEntityValueObj = matchedEntitiesJSON.opt(matchedEntityName);
+                    // avoid the value is JSONObject
+                    if (matchedEntityValueObj instanceof String) {
+                        matchedEntityValue = matchedEntitiesJSON.getString(matchedEntityName);
+                    }
                     if (isIgnoredEntity(matchedEntityValue)) continue;
                     originalEntityMap.replace(matchedEntityName, matchedEntityValue);
                 }
