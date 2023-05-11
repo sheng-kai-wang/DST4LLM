@@ -48,10 +48,13 @@ public class Tester {
     }
 
     public String updateIntent(JSONObject matchedIntentAndEntity, CapabilityLoader capabilityLoader, Long expiredInterval) throws JSONException {
+        System.out.println("[DEBUG] updateIntent()");
         Iterator intentIt = matchedIntentAndEntity.keys();
         while (intentIt.hasNext()) {
             String intentName = intentIt.next().toString();
+            System.out.println("[Intent Name] " + intentName);
             JSONObject matchedEntitiesJSON = matchedIntentAndEntity.getJSONObject(intentName);
+            System.out.println("[Matched Entities JSON] " + matchedEntitiesJSON);
 
             // out of scope
             if ("out_of_scope".equals(intentName) || "".equals(intentName)) {
@@ -61,7 +64,7 @@ public class Tester {
 
             // only entity
             if ("no_intent".equals(intentName)) {
-                if (getTopIntent() == null) break;
+                if (getTopIntent() == null) continue;
                 Map<String, String> originalEntityMap = getTopIntent().getEntities();
                 Iterator entityIt = matchedEntitiesJSON.keys();
                 while (entityIt.hasNext()) {

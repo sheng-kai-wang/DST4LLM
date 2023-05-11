@@ -105,8 +105,8 @@ public class ChatGPTService {
         JSONArray allEntities = capabilityLoader.getCapabilityJSONObject().getJSONArray(intentName);
         for (int i = 0; i < allEntities.length(); i++) {
             String currentEntityName = allEntities.getString(i);
-            if (providedEntities.containsKey(currentEntityName)) {
-                String entityValue = providedEntities.get(currentEntityName);
+            String entityValue = providedEntities.get(currentEntityName);
+            if (entityValue != null) {
                 providedEntityDescription.append("\"").append(currentEntityName).append("\" as ");
                 providedEntityDescription.append("\"").append(entityValue).append("\", ");
             } else {

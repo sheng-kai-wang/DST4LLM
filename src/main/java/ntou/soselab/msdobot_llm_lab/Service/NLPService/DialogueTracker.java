@@ -95,7 +95,7 @@ public class DialogueTracker {
             return mb.setContent("Okay, we have cancelled the " + cancelledIntentName + " capability for you.").build();
         }
 
-        String errorMessage = "```properties" + "\n[WARNING] Sorry, the system has encountered a formatting exception.```";
+        String errorMessage = "```properties" + "\n[WARNING] Sorry, this question is beyond my capabilities.```";
         try {
             JSONObject matchedIntentAndEntity = chatGPTService.classifyIntentAndExtractEntity(testerInput);
             String response = currentTester.updateIntent(matchedIntentAndEntity, capabilityLoader, EXPIRED_INTERVAL);
