@@ -190,10 +190,14 @@ public class DialogueTracker {
     }
 
     public String generateQuestionString(String testerId) {
-        Intent waitingIntent = activeTesterMap.get(testerId).getTopIntent();
+        Tester tester = activeTesterMap.get(testerId);
+        Intent waitingIntent = tester.getTopIntent();
         if (waitingIntent == null) return "";
+        System.out.println("[DEBUG] generate question to " + tester.getName());
         try {
-            return chatGPTService.queryMissingParameter(waitingIntent.getName(), waitingIntent.getEntities());
+            String question = chatGPTService.queryMissingParameter(waitingIntent.getName(), waitingIntent.getEntities());
+            System.out.println("[Question] " + question);
+            return question;
         } catch (JSONException e) {
             System.out.println("[ERROR] Before ChatGPT -> yaml to JSONObject exception");
             e.printStackTrace();
