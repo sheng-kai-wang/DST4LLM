@@ -1,8 +1,8 @@
-package ntou.soselab.msdobot_llm_lab.Entity;
+package ntou.soselab.chatops4msa_llm_lab.Entity;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import ntou.soselab.msdobot_llm_lab.Service.CapabilityLoader;
+import ntou.soselab.chatops4msa_llm_lab.Service.CapabilityLoader;
 import org.json.JSONException;
 import org.json.JSONObject;
 

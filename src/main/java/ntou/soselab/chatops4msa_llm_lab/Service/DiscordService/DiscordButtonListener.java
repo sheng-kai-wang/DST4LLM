@@ -1,9 +1,9 @@
-package ntou.soselab.msdobot_llm_lab.Service.DiscordService;
+package ntou.soselab.chatops4msa_llm_lab.Service.DiscordService;
 
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import ntou.soselab.msdobot_llm_lab.Service.NLPService.DialogueTracker;
+import ntou.soselab.chatops4msa_llm_lab.Service.NLPService.DialogueTracker;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

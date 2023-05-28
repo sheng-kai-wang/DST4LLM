@@ -1,4 +1,4 @@
-package ntou.soselab.msdobot_llm_lab.Service;
+package ntou.soselab.chatops4msa_llm_lab.Service;
 
 import org.json.JSONException;
 import org.json.JSONObject;

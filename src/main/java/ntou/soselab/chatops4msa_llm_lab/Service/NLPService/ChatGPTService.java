@@ -1,8 +1,8 @@
-package ntou.soselab.msdobot_llm_lab.Service.NLPService;
+package ntou.soselab.chatops4msa_llm_lab.Service.NLPService;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.gson.JsonParseException;
-import ntou.soselab.msdobot_llm_lab.Service.CapabilityLoader;
+import ntou.soselab.chatops4msa_llm_lab.Service.CapabilityLoader;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;

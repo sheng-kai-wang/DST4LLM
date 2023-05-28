@@ -1,4 +1,4 @@
-package ntou.soselab.msdobot_llm_lab.Entity;
+package ntou.soselab.chatops4msa_llm_lab.Entity;
 
 import java.util.Map;
 

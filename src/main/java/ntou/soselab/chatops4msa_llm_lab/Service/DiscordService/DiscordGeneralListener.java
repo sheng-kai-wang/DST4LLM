@@ -1,4 +1,4 @@
-package ntou.soselab.msdobot_llm_lab.Service.DiscordService;
+package ntou.soselab.chatops4msa_llm_lab.Service.DiscordService;
 
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.User;

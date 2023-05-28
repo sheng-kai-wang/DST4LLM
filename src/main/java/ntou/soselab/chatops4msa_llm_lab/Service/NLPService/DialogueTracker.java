@@ -1,4 +1,4 @@
-package ntou.soselab.msdobot_llm_lab.Service.NLPService;
+package ntou.soselab.chatops4msa_llm_lab.Service.NLPService;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.gson.JsonParseException;
@@ -6,9 +6,9 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
-import ntou.soselab.msdobot_llm_lab.Entity.Intent;
-import ntou.soselab.msdobot_llm_lab.Entity.Tester;
-import ntou.soselab.msdobot_llm_lab.Service.CapabilityLoader;
+import ntou.soselab.chatops4msa_llm_lab.Entity.Intent;
+import ntou.soselab.chatops4msa_llm_lab.Entity.Tester;
+import ntou.soselab.chatops4msa_llm_lab.Service.CapabilityLoader;
 import org.json.JSONObject;
 import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
