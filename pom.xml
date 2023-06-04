@@ -11,8 +11,8 @@
     <groupId>ntou.soselab</groupId>
     <artifactId>DST4LLM</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>MsdoBot-LLM-Lab</name>
-    <description>MsdoBot-LLM-Lab</description>
+    <name>DST4LLM</name>
+    <description>DST4LLM</description>
     <properties>
         <java.version>17</java.version>
     </properties>

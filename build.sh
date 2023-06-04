@@ -1,6 +1,6 @@
 #!/bin/bash
 
 mvn clean install -Dmaven.test.skip=true
-cp ./target/MsdoBot-LLM-Lab-0.0.1-SNAPSHOT.jar app.jar
+cp ./target/*.jar app.jar
 
-docker build . -t msdobot/msdobot-llm-lab:v1
+docker build . -t chatops4msa/chatops4msa-dst4llm:v1
