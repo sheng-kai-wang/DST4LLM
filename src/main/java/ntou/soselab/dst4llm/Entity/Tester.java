@@ -2,6 +2,7 @@ package ntou.soselab.dst4llm.Entity;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import ntou.soselab.dst4llm.Exception.UnexpectedServiceEntityException;
 import ntou.soselab.dst4llm.Service.CapabilityLoader;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -47,7 +48,7 @@ public class Tester {
         return !intentNameStack.isEmpty();
     }
 
-    public String updateIntent(JSONObject matchedIntentAndEntity, CapabilityLoader capabilityLoader, Long expiredInterval) throws JSONException {
+    public String updateIntent(JSONObject matchedIntentAndEntity, CapabilityLoader capabilityLoader, Long expiredInterval) throws JSONException, UnexpectedServiceEntityException {
         System.out.println("[DEBUG] updateIntent()");
         Iterator intentIt = matchedIntentAndEntity.keys();
         while (intentIt.hasNext()) {
@@ -71,6 +72,9 @@ public class Tester {
                     String matchedEntityName = entityIt.next().toString();
                     String matchedEntityValue = matchedEntitiesJSON.getString(matchedEntityName);
                     if (isIgnoredEntity(matchedEntityValue)) continue;
+                    if ("service_name".equals(matchedEntityName) && !isExpectedServiceEntity(matchedEntityValue)) {
+                        throw new UnexpectedServiceEntityException(matchedEntityValue);
+                    }
                     originalEntityMap.replace(matchedEntityName, matchedEntityValue);
                 }
                 getTopIntent().updateExpiredTimestamp(expiredInterval);
@@ -110,6 +114,9 @@ public class Tester {
                             entityValue = matchedEntitiesJSON.getString(entityName);
                         }
                         if (!isIgnoredEntity(entityValue)) {
+                            if ("service_name".equals(entityName) && !isExpectedServiceEntity(entityValue)) {
+                                throw new UnexpectedServiceEntityException(entityValue);
+                            }
                             newEntityMap.put(entityName, entityValue);
                             continue;
                         }
@@ -139,6 +146,9 @@ public class Tester {
                         matchedEntityValue = matchedEntitiesJSON.getString(matchedEntityName);
                     }
                     if (isIgnoredEntity(matchedEntityValue)) continue;
+                    if ("service_name".equals(matchedEntityName) && !isExpectedServiceEntity(matchedEntityValue)) {
+                        throw new UnexpectedServiceEntityException(matchedEntityValue);
+                    }
                     originalEntityMap.replace(matchedEntityName, matchedEntityValue);
                 }
                 intentMap.get(intentName).updateExpiredTimestamp(expiredInterval);
@@ -162,6 +172,13 @@ public class Tester {
                 "unspecified".equals(entityValue) ||
                 "未提供".equals(entityValue) ||
                 entityValue.startsWith("<");
+    }
+
+    private boolean isExpectedServiceEntity(String serviceEntityValue) {
+        return "Ordering".equals(serviceEntityValue) ||
+                "Payment".equals(serviceEntityValue) ||
+                "Notification".equals(serviceEntityValue) ||
+                "all_service".equals(serviceEntityValue);
     }
 
     private void updatePerformableStatusOfIntent(Intent intent) {

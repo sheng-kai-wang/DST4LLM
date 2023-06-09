@@ -8,6 +8,7 @@ import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import ntou.soselab.dst4llm.Entity.Intent;
 import ntou.soselab.dst4llm.Entity.Tester;
+import ntou.soselab.dst4llm.Exception.UnexpectedServiceEntityException;
 import ntou.soselab.dst4llm.Service.CapabilityLoader;
 import org.json.JSONObject;
 import org.json.JSONException;
@@ -95,7 +96,8 @@ public class DialogueTracker {
             return mb.setContent("Okay, we have cancelled the " + cancelledIntentName + " capability for you.").build();
         }
 
-        String errorMessage = "```properties" + "\n[WARNING] Sorry, this question is beyond my capabilities.```";
+        String outOfCapabilityErrorMessage = "```properties" + "\n[WARNING] Sorry, this question is beyond my capabilities.```";
+        String unexpectedServiceEntityErrorMessage = "```properties" + "\n[WARNING] Sorry, the service can only be Ordering, Payment or Notification.```";
         try {
             JSONObject matchedIntentAndEntity = chatGPTService.classifyIntentAndExtractEntity(testerInput);
             String response = currentTester.updateIntent(matchedIntentAndEntity, capabilityLoader, EXPIRED_INTERVAL);
@@ -103,15 +105,20 @@ public class DialogueTracker {
         } catch (JsonParseException e) {
             System.out.println("[ERROR] After ChatGPT -> json string to JSONObject exception");
             e.printStackTrace();
-            return mb.setContent(errorMessage).build();
+            return mb.setContent(outOfCapabilityErrorMessage).build();
         } catch (JsonProcessingException e) {
             System.out.println("[ERROR] Before ChatGPT -> yaml to json string exception");
             e.printStackTrace();
-            return mb.setContent(errorMessage).build();
+            return mb.setContent(outOfCapabilityErrorMessage).build();
         } catch (JSONException e) {
             System.out.println("[ERROR] After ChatGPT -> get JSONObject from JSONObject exception");
             e.printStackTrace();
-            return mb.setContent(errorMessage).build();
+            return mb.setContent(outOfCapabilityErrorMessage).build();
+        } catch (UnexpectedServiceEntityException e) {
+            System.out.println("[ERROR] there is a unexpected service entity");
+            System.out.println("[Unexpected Service] " + e.getMessage());
+            e.printStackTrace();
+            return mb.setContent(unexpectedServiceEntityErrorMessage).build();
         }
 
         // generate perform check (button)
