@@ -1,0 +1,25 @@
+restaurant_ordering:
+  - name_of_restaurant
+  - time
+  - number_of_people
+hotel_booking:
+  - name_of_hotel
+  - check_in_date
+  - check_out_date
+  - type_of_room
+  - number_of_people
+  - method_of_payment
+train_ticket_booking:
+  - origin_station
+  - destination_station
+  - time
+  - type_of_ticket
+  - quantity
+  - method_of_payment
+flight_ticket_booking:
+  - origin
+  - destination
+  - time
+  - type_of_ticket
+  - quantity
+  - method_of_payment

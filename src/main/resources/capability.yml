@@ -1,25 +1,27 @@
-restaurant_ordering:
-  - name_of_restaurant
-  - time
-  - number_of_people
-hotel_booking:
-  - name_of_hotel
-  - check_in_date
-  - check_out_date
-  - type_of_room
-  - number_of_people
-  - method_of_payment
-train_ticket_booking:
-  - origin_station
-  - destination_station
-  - time
-  - type_of_ticket
-  - quantity
-  - method_of_payment
-flight_ticket_booking:
-  - origin
-  - destination
-  - time
-  - type_of_ticket
-  - quantity
-  - method_of_payment
+echo-null-text_message:
+  - message
+get-github-service_recent_activity:
+  - service_name
+  - number_of_activity
+get-github-service_latest_commit_report:
+  - service_name
+get-github-service_past_week_team_activity:
+  - service_name
+get-github-all_service_dependency_risk_past_week: null
+create-github-service_dependency_risk_issue:
+  - service_name
+  - issue_title
+  - issue_message
+set-prometheus-edit_alert_rules: null
+monitor-prometheus-health:
+  - service_name
+monitor-prometheus-overview: null
+monitor-prometheus-all_service_alert: null
+monitor-prometheus-all_service_yesterday_report: null
+monitor-prometheus-service_dependency: null
+test-k6-stress_testing:
+  - service_name
+test-k6-smoke_testing_all_service:
+  - number_of_virtual_user
+test-custom_test-smoke_testing_all_service_and_repository_report:
+  - number_of_virtual_user
