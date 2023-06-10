@@ -1,21 +1,85 @@
 感謝您參與我們的實驗
 本系統利用大型語言模型分類使用者自然語言問句的功能意圖，並找出其中的參數實體，藉由大型語言模型的力量，預期能夠讓對話流程更為流暢，此實驗的目的是為了驗證此系統的有效性，您可透過自然語言與機器人進行模擬對話，測試他是否能理解您的意思
 
-下列為目前系統能夠判斷的功能意圖及為了完成功能需要填入的參數：
+目前使用場景為`微服務系統的開發與微運`，下列為目前系統能夠判斷的功能意圖及為了完成功能需要填入的參數：
 ```
-功能意圖：預訂餐廳
-所需參數實體：餐廳地點、時間、人數
+功能意圖：使用 GitHub API 取得某服務最近幾筆活動資料
+意圖名稱：get-github-service_recent_activity
+所需參數實體：服務名稱、活動數量
+實體名稱：service_name, number_of_activity
 
-功能意圖：預訂旅館
-所需參數實體：旅館地點、入住時間、退房時間、房型、人數、付款方式
+功能意圖：使用 GitHub API 取得某服務最新的 commit 報告
+意圖名稱：get-github-service_latest_commit_report
+所需參數實體：服務名稱
+實體名稱：service_name
 
-功能意圖：預訂火車票
-所需參數實體：出發車站、目的車站、時間、車票類型、車票張數、付款方式
+功能意圖：使用 GitHub API 取得某服務上週的團隊活動狀況
+意圖名稱：get-github-service_past_week_team_activity
+所需參數實體：服務名稱
+實體名稱：service_name
 
-功能意圖：預訂機票
-所需參數實體：出發城市、目的城市、時間、機票類型、機票張數、付款方式
+功能意圖：使用 GitHub API 取得所有服務上週的依賴風險分析
+意圖名稱：get-github-all_service_dependency_risk_past_week
+所需參數實體：(不需要任何參數)
+實體名稱：(null)
+
+功能意圖：使用 GitHub API 針對某服務的依賴風險，建立一個 issue
+意圖名稱：create-github-service_dependency_risk_issue
+所需參數實體：服務名稱、issue 標題、issue 說明訊息
+實體名稱：service_name, issue_title, issue_message
+
+功能意圖：使用 Prometheus API 設定監控警報規則
+意圖名稱：set-prometheus-edit_alert_rules
+所需參數實體：(不需要任何參數)
+實體名稱：(null)
+
+功能意圖：使用 Prometheus API 監控某服務的健康狀況
+意圖名稱：monitor-prometheus-health
+所需參數實體：服務名稱
+實體名稱：service_name
+
+功能意圖：使用 Prometheus API 監控所有服務的概觀資訊
+意圖名稱：monitor-prometheus-overview
+所需參數實體：(不需要任何參數)
+實體名稱：(null)
+
+功能意圖：使用 Prometheus API 監控所有服務的警報資訊
+意圖名稱：monitor-prometheus-all_service_alert
+所需參數實體：(不需要任何參數)
+實體名稱：(null)
+
+功能意圖：使用 Prometheus API 監控所有服務昨天的運行報告
+意圖名稱：monitor-prometheus-all_service_yesterday_report
+所需參數實體：(不需要任何參數)
+實體名稱：(null)
+
+功能意圖：使用 Prometheus API 監控所有服務的服務依賴關係
+意圖名稱：monitor-prometheus-service_dependency
+所需參數實體：(不需要任何參數)
+實體名稱：(null)
+
+功能意圖：使用 k6 命令對某服務執行壓力測試
+意圖名稱：test-k6-stress_testing
+所需參數實體：服務名稱
+實體名稱：service_name
+
+功能意圖：使用 k6 命令對所有服務執行冒煙測試
+意圖名稱：test-k6-smoke_testing_all_service
+所需參數實體：測試時的虛擬使用者數量
+實體名稱：number_of_virtual_user
+
+功能意圖：對所有服務做冒煙測試並監控測試狀況，接著對那些沒有通過測試的服務，取得其 repository 最近一週的活動狀況報告
+意圖名稱：test-custom_test-smoke_testing_all_service_and_repository_report
+所需參數實體：測試時的虛擬使用者數量
+實體名稱：number_of_virtual_user
+
+功能意圖：重複輸入的文字訊息
+意圖名稱：echo-null-text_message
+所需參數實體：文字訊息內容
+實體名稱：message
 ```
-所有參數內容您都可隨機填寫，此實驗的目的只是為了測試機器人能否正確理解您的意思，不會實際送出任何請求
+所有參數內容您都可隨機填寫，唯`服務名稱`只能是 Productpage、Reviews、Ratings、Details 或 all_service 其中一種
+此實驗的目的只是為了測試機器人能否正確理解您的意思，不會實際送出任何請求
 
 請注意，機器人對於與您的話題具有一定時間的記憶，若是太久沒回覆他，他便會漸漸忘記先前聊天的內容 (記憶只能保留 60 秒)
 
