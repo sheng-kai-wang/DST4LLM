@@ -48,7 +48,7 @@ public class DialogueTracker {
             activeTesterMap.put(testerId, new Tester(testerId, testerName));
             System.out.println("[DEBUG] add tester: " + testerName);
             mb.addContent("Let's start the lab!\n");
-            mb.addContent("Please try to book a restaurant, hotel, train ticket, or plane ticket through me.");
+            mb.addContent("Please try to perform the several capabilities explained above.");
             return mb.build();
         }
     }
@@ -97,9 +97,10 @@ public class DialogueTracker {
         }
 
         String outOfCapabilityErrorMessage = "```properties" + "\n[WARNING] Sorry, this question is beyond my capabilities.```";
-        String unexpectedServiceEntityErrorMessage = "```properties" + "\n[WARNING] Sorry, the service can only be Ordering, Payment or Notification.```";
+        String unexpectedServiceEntityErrorMessage = "```properties" + "\n[WARNING] Sorry, the service can only be Productpage, Reviews, Ratings, Details or all_service.```";
         try {
-            JSONObject matchedIntentAndEntity = chatGPTService.classifyIntentAndExtractEntity(testerInput);
+            String topIntentAndEntities = currentTester.getTopIntentAndEntitiesString();
+            JSONObject matchedIntentAndEntity = chatGPTService.classifyIntentAndExtractEntity(topIntentAndEntities, testerInput);
             String response = currentTester.updateIntent(matchedIntentAndEntity, capabilityLoader, EXPIRED_INTERVAL);
             mb.addContent(response);
         } catch (JsonParseException e) {
@@ -155,7 +156,7 @@ public class DialogueTracker {
         }
         mb.setActionRow(Button.primary("Perform", "Perform"), Button.primary("Cancel", "Cancel"));
         waitingButtonTesterList.add(tester.getId());
-        System.out.println("[DEBUG] Waiting for " + tester.getName() + "to click the button.");
+        System.out.println("[DEBUG] Waiting for " + tester.getName() + " to click the button.");
     }
 
     public boolean isWaitingTester(String testerId) {

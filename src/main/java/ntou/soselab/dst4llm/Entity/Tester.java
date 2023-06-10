@@ -48,6 +48,18 @@ public class Tester {
         return !intentNameStack.isEmpty();
     }
 
+    public String getTopIntentAndEntitiesString() {
+        StringBuilder sb = new StringBuilder();
+        Intent topIntent = getTopIntent();
+        if (topIntent == null) return "";
+        sb.append("{").append(topIntent.getName()).append(":{");
+        for (Map.Entry<String, String> entityEntry : topIntent.getEntities().entrySet()) {
+            sb.append(entityEntry.getKey()).append(":").append(entityEntry.getValue()).append(",");
+        }
+        sb.append("}}");
+        return sb.toString();
+    }
+
     public String updateIntent(JSONObject matchedIntentAndEntity, CapabilityLoader capabilityLoader, Long expiredInterval) throws JSONException, UnexpectedServiceEntityException {
         System.out.println("[DEBUG] updateIntent()");
         Iterator intentIt = matchedIntentAndEntity.keys();
@@ -98,30 +110,33 @@ public class Tester {
                     e.printStackTrace();
                     continue;
                 }
-                List allEntityNameList;
-                try {
-                    allEntityNameList = new ObjectMapper().readValue(allEntityNameJsonString, List.class);
-                } catch (JsonProcessingException e) {
-                    throw new RuntimeException(e);
-                }
-                for (Object entityNameObj : allEntityNameList) {
-                    String entityName = entityNameObj.toString();
-                    if (matchedEntitiesJSON.has(entityName)) {
-                        String entityValue = null;
-                        Object entityValueObj = matchedEntitiesJSON.opt(entityName);
-                        // avoid the value is JSONObject
-                        if (entityValueObj instanceof String) {
-                            entityValue = matchedEntitiesJSON.getString(entityName);
-                        }
-                        if (!isIgnoredEntity(entityValue)) {
-                            if ("service_name".equals(entityName) && !isExpectedServiceEntity(entityValue)) {
-                                throw new UnexpectedServiceEntityException(entityValue);
-                            }
-                            newEntityMap.put(entityName, entityValue);
-                            continue;
-                        }
+
+                if (allEntityNameJsonString != null) {
+                    List allEntityNameList;
+                    try {
+                        allEntityNameList = new ObjectMapper().readValue(allEntityNameJsonString, List.class);
+                    } catch (JsonProcessingException e) {
+                        throw new RuntimeException(e);
                     }
-                    newEntityMap.put(entityName, null);
+                    for (Object entityNameObj : allEntityNameList) {
+                        String entityName = entityNameObj.toString();
+                        if (matchedEntitiesJSON.has(entityName)) {
+                            String entityValue = null;
+                            Object entityValueObj = matchedEntitiesJSON.opt(entityName);
+                            // avoid the value is JSONObject
+                            if (entityValueObj instanceof String) {
+                                entityValue = matchedEntitiesJSON.getString(entityName);
+                            }
+                            if (!isIgnoredEntity(entityValue)) {
+                                if ("service_name".equals(entityName) && !isExpectedServiceEntity(entityValue)) {
+                                    throw new UnexpectedServiceEntityException(entityValue);
+                                }
+                                newEntityMap.put(entityName, entityValue);
+                                continue;
+                            }
+                        }
+                        newEntityMap.put(entityName, null);
+                    }
                 }
                 Long expiredTimestamp = System.currentTimeMillis() + expiredInterval;
                 Intent newIntent = new Intent(intentName, expiredTimestamp, newEntityMap);
@@ -175,9 +190,10 @@ public class Tester {
     }
 
     private boolean isExpectedServiceEntity(String serviceEntityValue) {
-        return "Ordering".equals(serviceEntityValue) ||
-                "Payment".equals(serviceEntityValue) ||
-                "Notification".equals(serviceEntityValue) ||
+        return "Productpage".equals(serviceEntityValue) ||
+                "Reviews".equals(serviceEntityValue) ||
+                "Ratings".equals(serviceEntityValue) ||
+                "Details".equals(serviceEntityValue) ||
                 "all_service".equals(serviceEntityValue);
     }
 
@@ -186,6 +202,7 @@ public class Tester {
         System.out.println("[DEBUG] Current Intent's Entity Map:");
         System.out.println(currentIntentEntityMap);
         if (!currentIntentEntityMap.containsValue(null)) intent.preparePerform();
+        if (currentIntentEntityMap.isEmpty()) intent.preparePerform();
     }
 
     private String getIntentMapString() {

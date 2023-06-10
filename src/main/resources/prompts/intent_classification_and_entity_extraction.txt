@@ -1,8 +1,7 @@
 Please list the intent and entity information of the user's message, and sort the possible intents in reverse order of the appearance. A sentence can contain multiple intents or entities, or only intents or entities. The following are the allowed intents and entities:
 <CAPABILITY_JSON>
 
-The service_name can only be <SERVICE_LIST> or all_service. If out of the above, output "unexpected_service".
-
+The service_name can only be Productpage, Reviews, Ratings, Details or all_service. If out of the above, output "unexpected_service".
 Convert entity to Arabic numerals if it is a number.
 
 The following is the JSON format you will output, "< >" represents the positions you need to fill in. In JSON, do not use duplicate keys, do not include the objects of entity_name and entity_value if the user has not provided them, do not output any content outside the JSON, do not output the confidence, and do not output null, just output the correct JSON format:

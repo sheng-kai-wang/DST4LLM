@@ -30,7 +30,9 @@ public class CapabilityLoader {
     }
 
     public String getCapabilityByJsonPath(String jsonPath) {
-        return JsonPath.read(capabilityJsonString, jsonPath).toString();
+        Object entityName = JsonPath.read(capabilityJsonString, jsonPath);
+        if (entityName == null) return null;
+        return entityName.toString();
     }
 
     public JSONObject getCapabilityJSONObject() throws JSONException {

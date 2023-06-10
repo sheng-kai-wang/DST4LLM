@@ -44,7 +44,7 @@ public class DiscordButtonListener extends ListenerAdapter {
 
             String question = dialogueTracker.generateQuestionString(testerId);
             event.getHook()
-                    .sendMessage("got it!\n" + buttonId + " " + intentNameList + "\n\n" + question)
+                    .sendMessage("got it!\n" + buttonId + " `" + intentNameList + "`\n\n" + question)
                     .queue();
             System.out.println("[DEBUG] generate question to " + testerName);
         }

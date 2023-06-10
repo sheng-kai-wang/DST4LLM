@@ -74,14 +74,14 @@ public class ChatGPTService {
      * @throws JsonProcessingException Before ChatGPT -> yaml to json string exception
      * @throws JsonParseException      After ChatGPT -> json string to JSONObject exception
      */
-    public JSONObject classifyIntentAndExtractEntity(String userPrompt) throws JsonProcessingException, JsonParseException, JSONException {
+    public JSONObject classifyIntentAndExtractEntity(String previousIntentAndEntities, String userPrompt) throws JsonProcessingException, JsonParseException, JSONException {
         System.out.println("[DEBUG] trigger classifyIntentAndExtractEntity()");
         System.out.println("[User Prompt] " + userPrompt);
 
         String capabilityYamlStringForChatGPT = capabilityLoader.getCapabilityYamlStringForChatGPT();
         String systemPrompt = INTENT_CLASSIFICATION_AND_ENTITY_EXTRACTION_FILE.replace("<CAPABILITY_JSON>", capabilityYamlStringForChatGPT);
 
-        String completion = inference(systemPrompt, userPrompt);
+        String completion = inference(systemPrompt, previousIntentAndEntities, userPrompt);
         System.out.println("[Completion String] " + completion);
 
         JSONObject completionJSON = new JSONObject(completion);
@@ -118,10 +118,53 @@ public class ChatGPTService {
         systemPrompt = systemPrompt.replace("<MISSING_ENTITY_DESCRIPTION>", missingEntityDescription.toString());
         System.out.println("[System Prompt] " + systemPrompt);
 
-        return inference(systemPrompt, null);
+        return inference(systemPrompt);
     }
 
     private String inference(String systemPrompt, String userPrompt) {
+        JSONArray allMessages = new JSONArray();
+        allMessages = putSystemMessage(allMessages, systemPrompt);
+        allMessages = putUserMessage(allMessages, userPrompt);
+        return callChatGPTAPI(allMessages);
+    }
+
+    private String inference(String systemPrompt, String previousIntentAndEntities, String userPrompt) {
+        JSONArray allMessages = new JSONArray();
+        allMessages = putSystemMessage(allMessages, systemPrompt);
+        allMessages = putUserMessage(allMessages, previousIntentAndEntities);
+        allMessages = putUserMessage(allMessages, userPrompt);
+        return callChatGPTAPI(allMessages);
+    }
+
+    private String inference(String systemPrompt) {
+        JSONArray allMessages = new JSONArray();
+        allMessages = putSystemMessage(allMessages, systemPrompt);
+        return callChatGPTAPI(allMessages);
+    }
+
+    private JSONArray putSystemMessage(JSONArray allMessages, String systemPrompt) {
+        JSONObject systemMessage = new JSONObject();
+        try {
+            systemMessage.put("role", "system");
+            systemMessage.put("content", systemPrompt);
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
+        return allMessages.put(systemMessage);
+    }
+
+    private JSONArray putUserMessage(JSONArray allMessages, String userPrompt) {
+        JSONObject userMessage = new JSONObject();
+        try {
+            userMessage.put("role", "user");
+            userMessage.put("content", userPrompt);
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
+        return allMessages.put(userMessage);
+    }
+
+    private String callChatGPTAPI(JSONArray promptMessages) {
         RestTemplate restTemplate = new RestTemplate();
 
         HttpHeaders headers = new HttpHeaders();
@@ -136,30 +179,8 @@ public class ChatGPTService {
             throw new RuntimeException(e);
         }
 
-        JSONArray messages = new JSONArray();
-
-        JSONObject systemMessage = new JSONObject();
         try {
-            systemMessage.put("role", "system");
-            systemMessage.put("content", systemPrompt);
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
-        }
-        messages.put(systemMessage);
-
-        if (userPrompt != null) {
-            JSONObject userMessage = new JSONObject();
-            try {
-                userMessage.put("role", "user");
-                userMessage.put("content", userPrompt);
-            } catch (JSONException e) {
-                throw new RuntimeException(e);
-            }
-            messages.put(userMessage);
-        }
-
-        try {
-            requestBody.put("messages", messages);
+            requestBody.put("messages", promptMessages);
         } catch (JSONException e) {
             throw new RuntimeException(e);
         }
