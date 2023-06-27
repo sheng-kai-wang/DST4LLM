@@ -49,12 +49,12 @@ public class Tester {
     }
 
     public String getTopIntentAndEntitiesString() {
-        StringBuilder sb = new StringBuilder();
         Intent topIntent = getTopIntent();
-        if (topIntent == null) return "";
-        sb.append("{").append(topIntent.getName()).append(":{");
+        if (topIntent == null || topIntent.canPerform()) return "";
+        StringBuilder sb = new StringBuilder();
+        sb.append("{\"").append(topIntent.getName()).append("\":{");
         for (Map.Entry<String, String> entityEntry : topIntent.getEntities().entrySet()) {
-            sb.append(entityEntry.getKey()).append(":").append(entityEntry.getValue()).append(",");
+            sb.append("\"").append(entityEntry.getKey()).append("\":\"").append(entityEntry.getValue()).append("\",");
         }
         sb.append("}}");
         return sb.toString();
@@ -72,7 +72,7 @@ public class Tester {
             // out of scope
             if ("out_of_scope".equals(intentName) || "".equals(intentName)) {
                 System.out.println("[DEBUG] OUT OF SCOPE");
-                return "Sorry, the message you entered is beyond the scope of the capability.";
+                return "Sorry, the message you entered is beyond the scope of the capability.\n";
             }
 
             // only entity

@@ -1,5 +1,5 @@
-echo-null-text_message:
-  - message
+#echo-null-text_message:
+#  - message
 get-github-service_recent_activity:
   - service_name
   - number_of_activity
@@ -8,7 +8,10 @@ get-github-service_latest_commit_report:
 get-github-service_past_week_team_activity:
   - service_name
 get-github-all_service_dependency_risk_past_week: null
-create-github-service_dependency_risk_issue:
+get-github-issue_progress_timeline:
+  - service_name
+  - number_of_issue
+create-github-issue:
   - service_name
   - issue_title
   - issue_message

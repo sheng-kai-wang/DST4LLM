@@ -81,8 +81,14 @@ public class ChatGPTService {
         String capabilityYamlStringForChatGPT = capabilityLoader.getCapabilityYamlStringForChatGPT();
         String systemPrompt = INTENT_CLASSIFICATION_AND_ENTITY_EXTRACTION_FILE.replace("<CAPABILITY_JSON>", capabilityYamlStringForChatGPT);
 
-        String completion = inference(systemPrompt, previousIntentAndEntities, userPrompt);
+        userPrompt = previousIntentAndEntities + " and the preceding values of null are " + userPrompt;
+
+        String completion = inference(systemPrompt, userPrompt);
         System.out.println("[Completion String] " + completion);
+
+        int startIndex = completion.indexOf("{");
+        int endIndex = completion.lastIndexOf("}");
+        completion = completion.substring(startIndex, endIndex + 1);
 
         JSONObject completionJSON = new JSONObject(completion);
         System.out.println("[Completion JSON] " + completionJSON);
@@ -128,6 +134,9 @@ public class ChatGPTService {
         return callChatGPTAPI(allMessages);
     }
 
+    /**
+     * ARCHIVED
+     */
     private String inference(String systemPrompt, String previousIntentAndEntities, String userPrompt) {
         JSONArray allMessages = new JSONArray();
         allMessages = putSystemMessage(allMessages, systemPrompt);

@@ -48,7 +48,10 @@ public class DialogueTracker {
             activeTesterMap.put(testerId, new Tester(testerId, testerName));
             System.out.println("[DEBUG] add tester: " + testerName);
             mb.addContent("Let's start the lab!\n");
-            mb.addContent("Please try to perform the several capabilities explained above.");
+            mb.addContent("Please perform two tests for each of the three intents assigned to you, for a total of six tests.\n");
+            mb.addContent("And remember to fill in the test details in the form:\n");
+            mb.addContent("https://forms.gle/BouSnNMzyPEk5jnR6\n");
+            mb.addContent("Thank you.\n");
             return mb.build();
         }
     }
@@ -59,9 +62,6 @@ public class DialogueTracker {
             activeTesterMap.remove(testerId);
             System.out.println("[DEBUG] remove tester: " + testerName);
             mb.addContent("```properties" + "\n[INFO] Thank you for your assistance.```\n");
-            mb.addContent("Please remember to fill out our feedback form:\n");
-            mb.addContent("https://forms.gle/2qZtBQDJqsv6cnao8\n");
-            mb.addContent("Thank you.\n");
             return mb.build();
         } else {
             return mb.setContent("```properties" + "\n[WARNING] You haven't started the lab yet.```").build();
@@ -84,7 +84,7 @@ public class DialogueTracker {
 
         if (chatGPTService.isPromptInjection(testerInput)) {
             System.out.println("[WARNING] Prompt Injection");
-            return mb.setContent("Sorry, the message you entered is beyond the scope of the capability.").build();
+            return mb.setContent("Sorry, the message you entered is beyond the scope of the capability.\n").build();
         }
 
         if (chatGPTService.isEndOfTopic(testerInput)) {

@@ -37,7 +37,7 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
         System.out.println("[User ID] " + userId);
         System.out.println("[User Name] " + userName);
 
-        if (!event.isFromGuild()) {
+        if (!event.isFromGuild() || "bot-example".equals(event.getChannel().getName())) {
             if ("lab_start".equals(eventName)) {
                 MessageCreateData response = dialogueTracker.addTester(userId, userName);
                 event.reply(response).queue();
