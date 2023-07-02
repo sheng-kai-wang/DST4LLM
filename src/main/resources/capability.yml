@@ -28,5 +28,5 @@ test-k6-stress_testing:
   - service_name
 test-k6-smoke_testing_all_service:
   - number_of_virtual_user
-test-custom_test-smoke_testing_all_service_and_repository_report:
+test-custom_test-smoke_and_repo_all_service:
   - number_of_virtual_user
