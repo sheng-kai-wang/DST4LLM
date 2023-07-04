@@ -81,8 +81,10 @@ public class ChatGPTService {
         String capabilityYamlStringForChatGPT = capabilityLoader.getCapabilityYamlStringForChatGPT();
         String systemPrompt = INTENT_CLASSIFICATION_AND_ENTITY_EXTRACTION_FILE.replace("<CAPABILITY_JSON>", capabilityYamlStringForChatGPT);
 
-        userPrompt = previousIntentAndEntities + " and the preceding values of null are " + userPrompt;
-
+        if (!previousIntentAndEntities.isEmpty()) {
+            userPrompt = previousIntentAndEntities + " and the preceding values of null are " + userPrompt;
+        }
+        
         String completion = inference(systemPrompt, userPrompt);
         System.out.println("[Completion String] " + completion);
 
