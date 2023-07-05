@@ -1,5 +1,3 @@
-#echo-null-text_message:
-#  - message
 get-github-service_recent_activity:
   - service_name
   - number_of_activity
@@ -7,7 +5,6 @@ get-github-service_latest_commit_report:
   - service_name
 get-github-service_past_week_team_activity:
   - service_name
-#get-github-all_service_dependency_risk_past_week: null
 get-github-contribution_of_team_member:
   - service_name
 get-github-issue_progress_timeline:
