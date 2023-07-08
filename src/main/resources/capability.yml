@@ -25,5 +25,6 @@ test-k6-stress_testing:
   - service_name
 test-k6-smoke_testing_all_service:
   - number_of_virtual_user
+# Perform smoke tests on all services and monitor their testing status. Then, for the services that did not pass the tests, retrieve their recent activity reports in the repository over the past week.
 test-custom_test-smoke_and_repo_all_service:
   - number_of_virtual_user
