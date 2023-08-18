@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker run -d -v /etc/localtime:/etc/localtime:ro --name chatops4msa-dst4llm chatops4msa/chatops4msa-dst4llm:v1
+docker run -d -v /etc/localtime:/etc/localtime:ro --name dst4llm dst4llm:v1
