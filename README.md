@@ -1,4 +1,4 @@
-# DST(Dialogue State Tracker) for LLM(Large Language Model)
+# DST (Dialogue State Tracker) for LLM (Large Language Model)
 
 ## Try DST4LLM
 
